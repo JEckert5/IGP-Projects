@@ -1,2 +1,3 @@
 # UltrakillClone99
-Project for Intro to Game Programming.
+
+Synthwave aesthetic with Ultrakill like gameplay and enemies.
