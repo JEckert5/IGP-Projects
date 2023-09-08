@@ -1,0 +1,11 @@
+﻿  main.cpp
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(28,35): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(28,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(34,15): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(143,20): warning C4244: '=': conversion from 'T' to 'float', possible loss of data
+          with
+          [
+              T=unsigned int
+          ]
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(147,19): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  assignment1_win.vcxproj -> C:\DevSus\school\UltraClone99\assignment1_jenseckert\x64\Debug\assignment1_win.exe
