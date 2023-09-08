@@ -2,3 +2,4 @@
 *.out
 /SFML\ Games
 .vs
+settings.json
