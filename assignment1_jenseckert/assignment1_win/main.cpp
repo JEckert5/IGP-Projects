@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <algorithm>
 
 using namespace sf;
 
@@ -51,8 +52,6 @@ class Entity {
 public:
     Entity() = default;
 
-    Entity(std::list<Entity*>* ents): globlEntities(ents) {}
-
     virtual void tick() { };
 
     virtual void draw(RenderWindow& window) { }
@@ -62,18 +61,17 @@ public:
     const void setSpeed(float x) { speed = x; }
 
     std::string name;
+    Vector2<float> pos;
+    Vector2f scale;
 
 protected:
     Animation anim;
     float speed;
-    Vector2<float> pos;
-    std::list<Entity*>* globlEntities = nullptr;
 };
 
 class Video: public Entity {
 public:
-    Video(std::list<Entity*>* ent){//: globlEntities(ent) {
-        globlEntities = ent;
+    Video(){//: globlEntities(ent) {
         name = "Video";
     }
 
@@ -147,17 +145,19 @@ public:
 
 class Bullet: public Entity {
 public:
-    Bullet(float v, Vector2<float> dir, float p, std::list<Entity*>* end): velocity(v), direction(dir), power(p) {
-        globlEntities = end;
+    Bullet(float v, Vector2<float> dir, float p): velocity(v), direction(dir), power(p) {
+        scale.x = 0.3f;
+        scale.y = 0.3f;
         bt.loadFromFile("images/bullet.gif");
         anim.getSprite().setTexture(bt);
+        anim.getSprite().setScale(scale);
         name = "Bullet";
         pos = dir;
+        markedForNegation = false;
     }
 
     ~Bullet() {
-        // std::cout << "FORTNITE!!\n" << std::endl;
-        globlEntities = nullptr;
+        
     }
 
     void tick() override {
@@ -165,9 +165,7 @@ public:
         anim.getSprite().setPosition(pos);
 
         if (pos.y < 0) {
-            // std::cout << "Hello.\n" << std::endl;
             markedForNegation = true;
-            // std::cout << "Hellllsdfsdfsdf\n" << std::flush;
         }
     }
 
@@ -175,28 +173,27 @@ public:
         window.draw(anim.getSprite());
     }
 
-    bool isMarkedForNegation() const {
-        return markedForNegation;
-    }
+    bool markedForNegation;
 
 private:
     float velocity;
     Vector2<float> direction;
     float power;
     Texture bt;
-    bool markedForNegation = false;
 };
 
 class Player: public Entity {
 public:
-    Player(Texture& t, std::list<Entity*>* ent) {
-        globlEntities = ent;
+    Player(Texture& t) {
         pos.y = height - t.getSize().y;
 
         anim.getSprite().setTexture(t);
         anim.getSprite().setScale(0.6f, 0.6f);
 
         pos.x = width / 4;
+
+        tSize = t.getSize();
+        scale = anim.getSprite().getScale();
 
         anim.getSprite().setPosition(pos);
 
@@ -213,14 +210,9 @@ public:
         if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
             pos.y += speed * deltaTime;
 
-        // Instantiate new bullet
-        if (Keyboard::isKeyPressed(Keyboard::Space) && fireTimer < 0) {
-            globlEntities->push_back(new Bullet(1, Vector2<float>(pos), 10, globlEntities));
-            fireTimer = 20;
-            std::cout << "Space" << std::endl;
-        }
+        pos.x = std::clamp<float>(pos.x, 0, width - (tSize.x * scale.x));
+        pos.y = std::clamp<float>(pos.y, 0, height - (tSize.y * scale.y));
 
-        std::cout << "Gug" << std::endl;
         anim.getSprite().setPosition(pos);
         fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : -0.1f;
     }
@@ -229,9 +221,18 @@ public:
         window.draw(anim.getSprite());
     }
 
+    bool readyToFire() {
+        return fireTimer < 0;
+    }
+
+    void resetFireTimer() {
+        fireTimer = 20;
+    }
+
 private:
     int health = 100;
     float fireTimer = -0.1f;
+    Vector2u tSize;
 };
 
 int main() {
@@ -246,13 +247,13 @@ int main() {
     Texture pt;
     pt.loadFromFile("images/player.png");
 
-    Player* player = new Player(pt, &entities);
+    Player* player = new Player(pt);
     player->setSpeed(500);
 
     entities.push_back(player);
 
     Clock clock;
-    Video* touhou = new Video(&entities);
+    Video* touhou = new Video();
 
     while (window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
@@ -261,27 +262,30 @@ int main() {
         while (window.pollEvent(e)) {
             if (e.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
+        }
 
-            if (Keyboard::isKeyPressed(Keyboard::F) && !touhou->isPlaying()) {
-                touhou->install("images/touhou", 6572, 30.0003f, "audio/badapple.wav");
-                entities.push_back(touhou);
-                touhou->start();
-            }
+        if (Keyboard::isKeyPressed(Keyboard::F) && !touhou->isPlaying()) {
+            touhou->install("images/touhou", 6572, 30.0003f, "audio/badapple.wav");
+            entities.push_back(touhou);
+            touhou->start();
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire()) {
+            entities.push_back(new Bullet(1, player->pos, 10));
+            player->resetFireTimer();
         }
 
         for (auto it = entities.begin(); it != entities.end(); it++) {
             (*it)->tick();
 
             if ((*it)->name == "Bullet") {
-                if (static_cast<Bullet*>(*it)->isMarkedForNegation()) {
+                if (static_cast<Bullet*>(*it)->markedForNegation) {
                     auto e = (*it);
                     it = entities.erase(it);
                     delete e;
                 }
             }
         }
-
-        std::cout << "Help" << std::endl;
 
         window.clear();
 
