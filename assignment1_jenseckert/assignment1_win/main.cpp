@@ -18,12 +18,19 @@ class Animation {
 public:
     Animation() = default;
 
+    Animation(const Animation& other) {
+        sprite = other.sprite;
+        fps = other.fps;
+        frame = other.frame;
+        frames = other.frames;
+    }
+
     Animation(Texture& t, int x, int y, int w, int h, int count, float speed) {
         frame = 0;
         fps = speed;
 
         for (int i = 0; i < count; i++)
-            frames.push_back(IntRect(x + i * w, y, w, h));
+            frames.emplace_back(IntRect(x + i * w, y, w, h));
 
         sprite.setTexture(t);
         sprite.setOrigin(w / 2, h / 2);
@@ -34,7 +41,7 @@ public:
         frame += fps;
         int n = frames.size();
         if (frame >= n) frame -= n;
-        if (n > 0) sprite.setTextureRect(frames[int(frame)]);
+        if (n > 0) sprite.setTextureRect(frames[static_cast<int>(frame)]);
     }
 
     Sprite& getSprite() {
@@ -45,41 +52,72 @@ private:
     Sprite sprite;
     std::vector<IntRect> frames;
 
-    float frame, fps;
+    float frame = 0, fps = 0;
 };
 
 class Entity {
 public:
     Entity() = default;
 
-    virtual void tick() { };
+    Entity(const Entity& other) {
+        name = other.name;
+        pos = other.pos;
+        scale = other.scale;
+        anim = other.anim;
+        speed = other.speed;
+        hitRadius = other.hitRadius;
+    }
+
+    void config(Animation& a, Vector2f s, Vector2f p, float r) {
+        anim = a;
+        pos = p;
+        hitRadius = r;
+        scale = s;
+        anim.getSprite().setScale(scale);
+        anim.getSprite().setPosition(p);
+    }
+
+    virtual ~Entity() = default;
+
+    virtual void tick() { }
 
     virtual void draw(RenderWindow& window) { }
 
     float getSpeed() const { return speed; }
 
-    const void setSpeed(float x) { speed = x; }
+    void setSpeed(const float x) { speed = x; }
+
+    bool collision(const Entity& other) const {
+        return (other.pos.x - pos.x) * (other.pos.x - pos.x) +
+            (other.pos.y - pos.y) * (other.pos.y - pos.y) <
+            (hitRadius + other.hitRadius) * (hitRadius + other.hitRadius);
+    }
 
     std::string name;
     Vector2<float> pos;
+    float hitRadius;
     Vector2f scale;
 
 protected:
     Animation anim;
-    float speed;
+    float speed = 0;
 };
 
-class Video: public Entity {
+class Video final : public Entity {
 public:
-    Video(){//: globlEntities(ent) {
+    Video(){
         name = "Video";
+
+        playing = false;
+        accumulator = 0.0f;
+        frame = 0;
+        fps = 0;
     }
 
     // relies on files having format 'output-XXXX.png' naming format.
-    void install(const std::string& frameFolder, int numFrames, float fps, const std::string& audioPath) {
+    void install(const std::string& frameFolder, const int numFrames, const float fps, const std::string& audioPath) {
         this->fps = 1 / fps;
         audio.openFromFile(audioPath);
-        frame = 0;
 
         for (int i = 1; i <= numFrames; i++) {
             std::string file;
@@ -99,28 +137,40 @@ public:
 
             frames.emplace_back(t);
         }
-
-        playing = false;
-        accumulator = 0.0f;
     }
 
     void tick() override {
+        if (!playing)
+            return;
+
         accumulator += deltaTime;
 
         if (accumulator >= fps) {
-            accumulator = 0.0f;
+            accumulator = 0;
             frame += 1;
-            sprite.setTexture(frames[frame]);
+            if (!(frame >= frames.size())) {
+                sprite.setTexture(frames[frame]);
+            } else {
+                stop();
+            }
         }
     }
 
     void start() {
         audio.play();
         playing = true;
-        sprite.setTexture(frames[0]);
+        frame = 0;
+        sprite.setTexture(frames[frame]);
     }
 
-    bool isPlaying() {
+    void stop() {
+        audio.stop();
+        playing = false;
+        frame = 0;
+        accumulator = 0;
+    }
+
+    bool isPlaying() const {
         return playing;
     }
 
@@ -136,32 +186,43 @@ private:
     float fps, accumulator;
 };
 
-class Enemy: public Entity {
+class Enemy final: public Entity {
 public:
-    void draw(RenderWindow& window) override {
-
-    }
-};
-
-class Bullet: public Entity {
-public:
-    Bullet(float v, Vector2<float> dir, float p): velocity(v), direction(dir), power(p) {
+    Enemy() {
         scale.x = 0.3f;
         scale.y = 0.3f;
-        bt.loadFromFile("images/bullet.gif");
-        anim.getSprite().setTexture(bt);
-        anim.getSprite().setScale(scale);
-        name = "Bullet";
-        pos = dir;
-        markedForNegation = false;
-    }
 
-    ~Bullet() {
-        
+        anim.getSprite().setScale(scale);
     }
 
     void tick() override {
-        pos.y += -direction.y * velocity * deltaTime;
+	    
+    }
+
+    void draw(RenderWindow& window) override {
+        window.draw(anim.getSprite());
+    }
+};
+
+class Bullet final: public Entity {
+public:
+	/**
+	 * \brief Bullet Constructor
+	 * \param a Animation
+	 * \param v velocity
+	 * \param pos starting position
+	 * \param p power
+	 * \param ud true = up, false = down
+	 */
+	Bullet(float p, bool ud, float v): markedForNegation(false), upDown(ud), power(p), velocity(v) {
+        scale.x = 0.5f;
+        scale.y = 0.5f;
+        name = "Bullet";
+    }
+
+    void tick() override {
+        anim.update();
+        pos.y -= upDown ? velocity * deltaTime : -velocity * deltaTime;
         anim.getSprite().setPosition(pos);
 
         if (pos.y < 0) {
@@ -174,25 +235,24 @@ public:
     }
 
     bool markedForNegation;
+    bool upDown;
 
 private:
     float velocity;
-    Vector2<float> direction;
     float power;
-    Texture bt;
 };
 
-class Player: public Entity {
+class Player final: public Entity {
 public:
-    Player(Texture& t) {
-        pos.y = height - t.getSize().y;
+    Player(Animation& a) {
+        pos.y = height - a.getSprite().getTexture()->getSize().y;
 
-        anim.getSprite().setTexture(t);
+        anim = a;
         anim.getSprite().setScale(0.6f, 0.6f);
 
         pos.x = width / 4;
 
-        tSize = t.getSize();
+        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * 0.6f;
         scale = anim.getSprite().getScale();
 
         anim.getSprite().setPosition(pos);
@@ -201,6 +261,8 @@ public:
     }
 
     void tick() override {
+        anim.update();
+
         if (Keyboard::isKeyPressed(Keyboard::A) || Keyboard::isKeyPressed(Keyboard::Left))
             pos.x -= speed * deltaTime;
         if (Keyboard::isKeyPressed(Keyboard::D) || Keyboard::isKeyPressed(Keyboard::Right))
@@ -210,8 +272,8 @@ public:
         if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
             pos.y += speed * deltaTime;
 
-        pos.x = std::clamp<float>(pos.x, 0, width - (tSize.x * scale.x));
-        pos.y = std::clamp<float>(pos.y, 0, height - (tSize.y * scale.y));
+        pos.x = std::clamp<float>(pos.x, tSize.x / 2, width - (tSize.x / 2));
+        pos.y = std::clamp<float>(pos.y, tSize.y / 2, height - (tSize.y / 2));
 
         anim.getSprite().setPosition(pos);
         fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : -0.1f;
@@ -221,39 +283,51 @@ public:
         window.draw(anim.getSprite());
     }
 
-    bool readyToFire() {
+    bool readyToFire() const {
         return fireTimer < 0;
     }
 
     void resetFireTimer() {
-        fireTimer = 20;
+        fireTimer = 2;
     }
 
 private:
     int health = 100;
     float fireTimer = -0.1f;
-    Vector2u tSize;
+    Vector2f tSize;
 };
 
 int main() {
-    std::random_device* r = new std::random_device;
+    auto r = new std::random_device;
     std::mt19937 m(r->operator()());
     delete r;
-
+    
     RenderWindow window(VideoMode(width, height), "Touhous Bizzare Adventure");
 
     std::list<Entity*> entities;
 
-    Texture pt;
+    Texture pt, bt, bt2, et;
     pt.loadFromFile("images/player.png");
+    bt.loadFromFile("images/bullet.png");
+    bt2.loadFromFile("images/bullet-2.png");
+    et.loadFromFile("images/enemy.png");
 
-    Player* player = new Player(pt);
+    Animation ba, ba2, pa, ea;
+    pa = Animation(pt, 0, 0, 336, 229, 1, 0.1f);
+    ba = Animation(bt, 0, 0, 32, 64, 16, 0.5f);
+    ba2 = Animation(bt2, 0, 0, 400, 400, 76, 0.5f);
+    ea = Animation(et, 0, 0, 1100, 1120, 1, 0.1f);
+
+    auto player = new Player(pa);
+    auto enemy = new Enemy;
+    enemy->config(ea, Vector2f(0.3f, 0.3f), Vector2f(width / 2, 0), 50);
     player->setSpeed(500);
 
     entities.push_back(player);
+    entities.push_back(enemy);
 
     Clock clock;
-    Video* touhou = new Video();
+    auto touhou = new Video;
 
     while (window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
@@ -271,7 +345,9 @@ int main() {
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire()) {
-            entities.push_back(new Bullet(1, player->pos, 10));
+            auto nb = new Bullet(10, true, 500);
+            nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, 10);
+            entities.push_back(nb);
             player->resetFireTimer();
         }
 
@@ -279,12 +355,14 @@ int main() {
             (*it)->tick();
 
             if ((*it)->name == "Bullet") {
-                if (static_cast<Bullet*>(*it)->markedForNegation) {
-                    auto e = (*it);
-                    it = entities.erase(it);
-                    delete e;
-                }
+	            if (auto dcb = dynamic_cast<Bullet*>(*it); dcb != nullptr && dcb->markedForNegation) {
+            		it = entities.erase(it);
+            		delete dcb;
+            	}
             }
+
+            if (it == entities.end())
+                break;
         }
 
         window.clear();
