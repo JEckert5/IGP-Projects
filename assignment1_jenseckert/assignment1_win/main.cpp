@@ -6,6 +6,7 @@
 #include <list>
 #include <iostream>
 #include <algorithm>
+#include <functional>
 
 using namespace sf;
 
@@ -13,6 +14,7 @@ int width = 800, height = 800;
 
 static float deltaTime = 0.0f;
 const Vector2f bulletScale(0.6f, 0.6f);
+static const float dioBulletVel = 100.f;
 
 std::mt19937 m;
 
@@ -84,15 +86,21 @@ public:
         anim.getSprite().setPosition(p);
     }
 
+    virtual void setTick(std::function<void()> t) {
+        optionalTick = t;
+    }
+
     virtual ~Entity() = default;
 
     virtual void tick() { 
         anim.update();
+        if (optionalTick)
+            optionalTick();
     }
 
     virtual void draw(RenderWindow& window) {
         window.draw(anim.getSprite());
-     }
+    }
 
     virtual bool collision(Entity* other) {
         if (other == this)
@@ -110,6 +118,7 @@ public:
     bool markedForNegation = false;
     Animation anim;
     float speed = 0;
+    std::function<void()> optionalTick;
 };
 
 class Video final : public Entity {
@@ -242,7 +251,7 @@ public:
         circle.setPosition(pos);
         circle.setOrigin(hitRadius, hitRadius);
 
-        window.draw(circle);
+        // window.draw(circle);
     }
 
     bool readyToFire() const {
@@ -250,7 +259,7 @@ public:
     }
 
     void resetFireTimer() {
-        fireTimer = 0.3f;
+        fireTimer = 0.25f;
     }
 
     unsigned int damage(unsigned int dmg) {
@@ -326,7 +335,7 @@ class DioBullet: public Bullet {
 public:
     DioBullet(float p, float v, Entity* s): Bullet(p, v, s) { }
 
-    void config(Animation& a, Vector2f s, Vector2f p, float r, Vector2f (*func)(Vector2f x, float y, float v, bool d)) {
+    void config(Animation& a, Vector2f s, Vector2f p, float r, std::function<Vector2f(Vector2f, float, float, bool)> func) {
         Bullet::config(a, s, p, r);
 
         interpFunc = func;
@@ -350,7 +359,8 @@ public:
             markedForNegation = true;
     }
 private:
-    Vector2f (*interpFunc)(Vector2f x, float y, float v, bool sd);
+    std::function<Vector2f(Vector2f, float, float, bool)> interpFunc;
+    // Vector2f (*interpFunc)(Vector2f x, float y, float v, bool sd);
     float schlerp = 0.f;
     bool schlerpDir = 0;
 };
@@ -403,24 +413,18 @@ public:
             } else {
                 moveDir = -1;
             }
-        } else if (pos.x <= tSize.x * scale.x / 2) {
-            moveTimer = m() % 4 + 1;
-
-            std::cout << tSize.x << std::endl;
-
-            std::cout << "Glerlfcum\n" << std::flush;
-
-            moveDir = 1;
-        } else if (pos.x >= width - tSize.x * scale.x / 2) {
-            moveTimer = m() % 4 + 1;
-
-            std::cout << "Glerl\n" << std::flush;
-
-            moveDir = -1;
         } else
             moveTimer -= deltaTime;
 
-        std::cout << pos.x << std::endl;
+        if (pos.x <= tSize.x / 2) {
+            moveTimer = m() % 4 + 1;
+
+            moveDir = 1;
+        } else if (pos.x >= width - tSize.x / 2) {
+            moveTimer = m() % 4 + 1;
+
+            moveDir = -1;
+        }
 
         pos.x += moveDir * speed * deltaTime;
 
@@ -431,7 +435,7 @@ public:
     void config(Animation& a, const Animation& bAnim, Vector2f s, Vector2f p, float r) {
         Entity::config(a, s, p, r);
 
-        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) ;
+        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * scale.x;
         bulletAnim = bAnim;
     }
 
@@ -458,22 +462,22 @@ public:
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-            auto db = new DioBullet(15, 50, this);
+            auto db = new DioBullet(15, dioBulletVel, this);
             db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
                 v2.x += 0;
-                v2.y += 2 * v * deltaTime;
+                v2.y += deltaTime * v;
                 return v2;
             });
             help->push_back(db);
 
             db = nullptr;
 
-            db = new DioBullet(15, 50, this);
+            db = new DioBullet(15, dioBulletVel, this);
 
             //auto db2 = new DioBullet(15, 50, this);
             db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
-                v2.x += 2 * deltaTime * v;
-                v2.y += 2 * v * deltaTime;
+                v2.x += deltaTime * v;
+                v2.y += deltaTime * v;
 
                 return v2;
             });
@@ -482,10 +486,10 @@ public:
 
             db = nullptr;
 
-            db = new DioBullet(15, 50, this);
+            db = new DioBullet(15, dioBulletVel, this);
             db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
-                v2.x -= 2 * deltaTime * v;
-                v2.y += 2 * v * deltaTime;
+                v2.x -= deltaTime * v;
+                v2.y += deltaTime * v;
 
                 return v2;
             });
@@ -501,13 +505,22 @@ public:
     }
 
     void patternTwo() {
-	    std::cout << "Woah2\n" << std::flush;
+	    // std::cout << "Woah2\n" << std::flush;
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-            auto db = new DioBullet(15, 50, this);
-            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
-                v2.x += 0;
+            auto empty = new Entity;
+            empty->pos = pos;
+
+            empty->setTick([empty]() {
+                empty->pos.x += deltaTime;
+                empty->pos.y += deltaTime;
+            });
+
+            help->push_back(empty);
+            auto db = new DioBullet(15, 100, this);
+            db->config(bulletAnim, bulletScale, pos, 10, [empty](Vector2f v2, float t, float v, bool d) { 
+                v2.x += empty->pos.x;
                 v2.y += v * deltaTime;
                 return v2;
             });
@@ -519,11 +532,11 @@ public:
     }
 
     void patternThree() {
-	    std::cout << "Woah3\n" << std::flush;
+	    // std::cout << "Woah3\n" << std::flush;
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-        	auto db = new DioBullet(15, 50, this);
+        	auto db = new DioBullet(15, 100, this);
             db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
                 v2.x += 0;
                 v2.y += v * deltaTime;
@@ -537,11 +550,11 @@ public:
     }
 
     void patternFour() {
-	    std::cout << "Woah4\n" << std::flush;
+	    // << "Woah4\n" << std::flush;
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-		    auto db = new DioBullet(15, 50, this);
+		    auto db = new DioBullet(15, 100, this);
 	        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
 	            v2.x += 0;
 	            v2.y += v * deltaTime;
@@ -610,7 +623,7 @@ int main() {
     ba2.getSprite().setRotation(180);
 
     auto player = new Player(pa);
-    auto enemy = new Dio(ea, 5000, &entities);
+    auto enemy = new Dio(ea, 1000, &entities);
     auto bgrnd = new Entity;
     bgrnd->config(bgra, Vector2f(2.f, 2.f), Vector2f(width / 2, height / 2), 0);
     enemy->config(ea, ba2, Vector2f(0.3f, 0.3f), Vector2f(width / 2, height / 4), 100);
@@ -651,7 +664,7 @@ int main() {
 
             if ((*it)->markedForNegation) {
                 delete *it;
-                std::cout << (*it)->name << std::endl;
+                // std::cout << (*it)->name << std::endl;
                 it = entities.erase(it);
             }
 
