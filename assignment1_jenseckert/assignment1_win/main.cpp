@@ -9,9 +9,11 @@
 
 using namespace sf;
 
-int width = 940, height = 720;
+int width = 1280, height = 1280;
 
 static float deltaTime = 0.0f;
+
+std::mt19937 m;
 
 // Ripped from the asteroid demo.
 class Animation {
@@ -68,7 +70,7 @@ public:
         hitRadius = other.hitRadius;
     }
 
-    void config(Animation& a, Vector2f s, Vector2f p, float r) {
+    virtual void config(Animation& a, Vector2f s, Vector2f p, float r) {
         anim = a;
         pos = p;
         hitRadius = r;
@@ -87,16 +89,20 @@ public:
 
     void setSpeed(const float x) { speed = x; }
 
-    bool collision(const Entity& other) const {
-        return (other.pos.x - pos.x) * (other.pos.x - pos.x) +
-            (other.pos.y - pos.y) * (other.pos.y - pos.y) <
-            (hitRadius + other.hitRadius) * (hitRadius + other.hitRadius);
+    virtual bool collision(Entity* other) {
+        if (other == this)
+            return false;
+
+        return (other->pos.x - pos.x) * (other->pos.x - pos.x) +
+            (other->pos.y - pos.y) * (other->pos.y - pos.y) <
+            (hitRadius + other->hitRadius) * (hitRadius + other->hitRadius);
     }
 
     std::string name;
     Vector2<float> pos;
     float hitRadius;
     Vector2f scale;
+    bool markedForNegation = false;
 
 protected:
     Animation anim;
@@ -186,63 +192,7 @@ private:
     float fps, accumulator;
 };
 
-class Enemy final: public Entity {
-public:
-    Enemy() {
-        scale.x = 0.3f;
-        scale.y = 0.3f;
-
-        anim.getSprite().setScale(scale);
-    }
-
-    void tick() override {
-	    
-    }
-
-    void draw(RenderWindow& window) override {
-        window.draw(anim.getSprite());
-    }
-};
-
-class Bullet final: public Entity {
-public:
-	/**
-	 * \brief Bullet Constructor
-	 * \param a Animation
-	 * \param v velocity
-	 * \param pos starting position
-	 * \param p power
-	 * \param ud true = up, false = down
-	 */
-	Bullet(float p, bool ud, float v): markedForNegation(false), upDown(ud), power(p), velocity(v) {
-        scale.x = 0.5f;
-        scale.y = 0.5f;
-        name = "Bullet";
-    }
-
-    void tick() override {
-        anim.update();
-        pos.y -= upDown ? velocity * deltaTime : -velocity * deltaTime;
-        anim.getSprite().setPosition(pos);
-
-        if (pos.y < 0) {
-            markedForNegation = true;
-        }
-    }
-
-    void draw(RenderWindow& window) override {
-        window.draw(anim.getSprite());
-    }
-
-    bool markedForNegation;
-    bool upDown;
-
-private:
-    float velocity;
-    float power;
-};
-
-class Player final: public Entity {
+class Player final : public Entity {
 public:
     Player(Animation& a) {
         pos.y = height - a.getSprite().getTexture()->getSize().y;
@@ -276,8 +226,10 @@ public:
         pos.y = std::clamp<float>(pos.y, tSize.y / 2, height - (tSize.y / 2));
 
         anim.getSprite().setPosition(pos);
-        fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : -0.1f;
+        fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : fireTimer;
     }
+
+    
 
     void draw(RenderWindow& window) override {
         window.draw(anim.getSprite());
@@ -291,16 +243,243 @@ public:
         fireTimer = 2;
     }
 
+    unsigned int damage(unsigned int dmg) {
+        health -= dmg;
+
+        if (health <= 0)
+            markedForNegation = true;
+
+        return health;
+    }
+
 private:
     int health = 100;
     float fireTimer = -0.1f;
     Vector2f tSize;
 };
 
+class Dio final: public Entity {
+public:
+    Dio(const Uint32& h, std::list<Entity*>* ptr): health(h), help(ptr) {
+        scale.x = 0.3f;
+        scale.y = 0.3f;
+
+        anim.getSprite().setScale(scale);
+        name = "Dio";
+    }
+
+    void tick() override {
+        if (m() % 100 > 25 && readyToFire()) {
+            resetFireTimer();
+
+            switch (m() % 5 + 1) {
+            case 1:
+                patternOne();
+                break;
+            case 2:
+                patternTwo();
+                break;
+            case 3:
+                patternThree();
+                break;
+            case 4:
+                patternFour();
+                break;
+            default:
+                std::cout << "How" << std::endl;
+                break;
+            }
+        }
+
+
+        if (moveTimer <= 0) {
+            moveTimer = m() % 4 + 1;
+
+            if (m() % 500 > 250) {
+                moveDir = 1;
+            } else {
+                moveDir = -1;
+            }
+        } else if (pos.x <= tSize.x / 2) {
+            moveTimer = m() % 4 + 1;
+
+            moveDir = 1;
+        } else if (pos.x >= width - tSize.x / 2) {
+            moveTimer = m() % 4 + 1;
+
+            moveDir = -1;
+        } else {
+            moveTimer -= deltaTime * 1.25f;
+        }
+
+        std::cout << moveTimer << std::endl;
+
+        pos.x += moveDir * speed * deltaTime;
+
+        anim.getSprite().setPosition(pos);
+        fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : fireTimer;
+    }
+
+    void config(Animation& a, Vector2f s, Vector2f p, float r) override {
+        Entity::config(a, s, p, r);
+
+        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * 0.3f;
+    }
+
+    void draw(RenderWindow& window) override {
+        CircleShape circle(hitRadius);
+        circle.setFillColor(Color(255, 0, 0, 170));
+        circle.setPosition(pos);
+        circle.setOrigin(hitRadius, hitRadius);
+
+        window.draw(anim.getSprite());
+        // window.draw(circle);
+    }
+
+    unsigned int damage(unsigned int dmg) {
+        health -= dmg;
+
+        if (health <= 0)
+            markedForNegation = true;
+
+        return health;
+    }
+
+    bool readyToFire() const {
+        return fireTimer < 0;
+    }
+
+    int getHealth() const {
+        return health;
+    }
+
+    void resetFireTimer() {
+        fireTimer = 2;
+    }
+
+    // Fuck
+    void patternOne() {
+	    
+    }
+
+    void patternTwo() {
+	    
+    }
+
+    void patternThree() {
+	    
+    }
+
+    void patternFour() {
+	    
+    }
+
+private:
+    unsigned int health;
+    float fireTimer = -0.1f;
+    float moveTimer = 0;
+    // 1 = right, -1 = left;
+    int moveDir = 1;
+    Vector2f tSize;
+    std::list<Entity*>* help;
+};
+
+class Bullet: public Entity {
+public:
+	/**
+	 * \brief Bullet Constructor
+	 * \param v velocity
+	 * \param pos starting position
+	 * \param p power
+	 * \param ud true = up, false = down
+	 * \param s the source of the bullet
+	 */
+	Bullet(float p, bool ud, float v, Entity* s): upDown(ud), velocity(v), power(p) {
+        scale.x = 0.5f;
+        scale.y = 0.5f;
+        name = "Bullet";
+        source = s;
+        markedForNegation = false;
+    }
+
+    void tick() override {
+        anim.update();
+        pos.y -= upDown ? velocity * deltaTime : -velocity * deltaTime;
+        anim.getSprite().setPosition(pos);
+        anim.getSprite().setRotation(upDown ? 0 : 180);
+
+        if (pos.y < 0 || pos.y > height || pos.x < 0 || pos.x > width)
+            markedForNegation = true;
+    }
+
+    void draw(RenderWindow& window) override {
+        window.draw(anim.getSprite());
+
+        CircleShape circle(hitRadius);
+        circle.setFillColor(Color(255, 0, 0, 170));
+        circle.setPosition(pos);
+        circle.setOrigin(hitRadius, hitRadius);
+
+        // window.draw(circle);
+    }
+
+    bool collision(Entity* other) override {
+        if (other == source)
+            return false;
+
+        if (Entity::collision(other)) {
+            std::cout << "Collision in bullet" << std::endl;
+            if (other->name == "Dio") {
+                dynamic_cast<Dio*>(other)->damage(power);
+                markedForNegation = true;
+            } else if (other->name == "Player") {
+                dynamic_cast<Player*>(other)->damage(power);
+                markedForNegation = true;
+            }
+
+            return true;
+        }
+
+        return false;
+	}
+
+    bool upDown;
+
+protected:
+    float velocity;
+    float power;
+    Entity* source;
+};
+
+class DioBullet: public Bullet {
+public:
+    void config(Animation& a, Vector2f s, Vector2f p, float r, Vector2f dir) {
+        direction = dir;
+    }
+
+    void tick() {
+	    
+    }
+private:
+    Vector2f direction;
+};
+
 int main() {
     auto r = new std::random_device;
-    std::mt19937 m(r->operator()());
+    m.seed((*r)());
     delete r;
+
+    Text text;
+    Font font;
+    text.setPosition(width * 0.8f, height * 0.75f);
+
+    if (!font.loadFromFile("images/MGS2.ttf")) {
+        std::cout << "Could not load font" << std::endl;
+        return -1;
+    }
+
+    text.setFont(font);
+    text.setCharacterSize(100);
     
     RenderWindow window(VideoMode(width, height), "Touhous Bizzare Adventure");
 
@@ -315,13 +494,14 @@ int main() {
     Animation ba, ba2, pa, ea;
     pa = Animation(pt, 0, 0, 336, 229, 1, 0.1f);
     ba = Animation(bt, 0, 0, 32, 64, 16, 0.5f);
-    ba2 = Animation(bt2, 0, 0, 400, 400, 76, 0.5f);
+    ba2 = Animation(bt2, 0, 0, 32, 64, 16, 0.5f);
     ea = Animation(et, 0, 0, 1100, 1120, 1, 0.1f);
 
     auto player = new Player(pa);
-    auto enemy = new Enemy;
-    enemy->config(ea, Vector2f(0.3f, 0.3f), Vector2f(width / 2, 0), 50);
+    auto enemy = new Dio(5000, &entities);
+    enemy->config(ea, Vector2f(0.3f, 0.3f), Vector2f(width / 2, height / 4), 100);
     player->setSpeed(500);
+    enemy->setSpeed(200);
 
     entities.push_back(player);
     entities.push_back(enemy);
@@ -332,9 +512,9 @@ int main() {
     while (window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
 
-        Event e;
-        while (window.pollEvent(e)) {
-            if (e.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
+        Event ev;
+        while (window.pollEvent(ev)) {
+            if (ev.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
         }
 
@@ -345,30 +525,36 @@ int main() {
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire()) {
-            auto nb = new Bullet(10, true, 500);
-            nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, 10);
+            auto nb = new Bullet(10, true, 750, player);
+            nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, player->pos, 10);
             entities.push_back(nb);
             player->resetFireTimer();
         }
 
-        for (auto it = entities.begin(); it != entities.end(); it++) {
+        for (auto it = entities.begin(); it != entities.end();) {
             (*it)->tick();
 
-            if ((*it)->name == "Bullet") {
-	            if (auto dcb = dynamic_cast<Bullet*>(*it); dcb != nullptr && dcb->markedForNegation) {
-            		it = entities.erase(it);
-            		delete dcb;
-            	}
-            }
+            if ((*it)->markedForNegation)
+                it = entities.erase(it);
 
-            if (it == entities.end())
-                break;
+            if (it != entities.end())
+                it++;
         }
+
+        for (auto e: entities) {
+	        for (auto b: entities) {
+                e->collision(b);
+	        }
+        }
+
+        text.setString("Dio: " + std::to_string(enemy->getHealth()));
 
         window.clear();
 
         for (auto e: entities)
             e->draw(window);
+
+        window.draw(text);
 
         window.display();
     }
