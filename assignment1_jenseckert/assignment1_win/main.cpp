@@ -335,10 +335,10 @@ public:
     void tick() {
         pos = interpFunc(pos, schlerp, velocity, schlerpDir);
 
-        schlerp = schlerpDir ? schlerp + deltaTime * 2 : schlerp - deltaTime * 2;
+        schlerp = schlerpDir ? schlerp + deltaTime : schlerp - deltaTime;
         schlerp = std::clamp<float>(schlerp, -1.f, 1.f);
 
-        if (schlerp == -1.f)
+        if (-1.f == schlerp)
             schlerpDir = 1;
         else if (schlerp == 1.f)
             schlerpDir = 0;
@@ -370,28 +370,7 @@ public:
         if (readyToFire() && !firing) {
             resetFireTimer();
             firing = true;
-
-            switch (m() % 4 + 1) {
-            case 1:
-                patternOne();
-                currentPattern = 1;
-                break;
-            case 2:
-                patternTwo();
-                currentPattern = 2;
-                break;
-            case 3:
-                patternThree();
-                currentPattern = 3;
-                break;
-            case 4:
-                patternFour();
-                currentPattern = 4;
-                break;
-            default:
-                std::cout << "How" << std::endl;
-                break;
-            }
+            currentPattern = m() % 4 + 1;
         } else if (firing) {
             switch (currentPattern) {
             case 1:
@@ -424,17 +403,24 @@ public:
             } else {
                 moveDir = -1;
             }
-        } else if (pos.x <= tSize.x / 2) {
+        } else if (pos.x <= tSize.x * scale.x / 2) {
             moveTimer = m() % 4 + 1;
+
+            std::cout << tSize.x << std::endl;
+
+            std::cout << "Glerlfcum\n" << std::flush;
 
             moveDir = 1;
-        } else if (pos.x >= width - tSize.x / 2) {
+        } else if (pos.x >= width - tSize.x * scale.x / 2) {
             moveTimer = m() % 4 + 1;
 
+            std::cout << "Glerl\n" << std::flush;
+
             moveDir = -1;
-        } else {
-            moveTimer -= deltaTime * 1.25f;
-        }
+        } else
+            moveTimer -= deltaTime;
+
+        std::cout << pos.x << std::endl;
 
         pos.x += moveDir * speed * deltaTime;
 
@@ -442,10 +428,10 @@ public:
         fireTimer = fireTimer > -0.1f ? fireTimer - deltaTime : fireTimer;
     }
 
-    void config(Animation& a, Animation bAnim, Vector2f s, Vector2f p, float r) {
+    void config(Animation& a, const Animation& bAnim, Vector2f s, Vector2f p, float r) {
         Entity::config(a, s, p, r);
 
-        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * 0.3f;
+        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) ;
         bulletAnim = bAnim;
     }
 
@@ -480,18 +466,36 @@ public:
             });
             help->push_back(db);
 
-            auto db2 = new DioBullet(15, 50, this);
-            db2->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
+            db = nullptr;
+
+            db = new DioBullet(15, 50, this);
+
+            //auto db2 = new DioBullet(15, 50, this);
+            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
                 v2.x += 2 * deltaTime * v;
                 v2.y += 2 * v * deltaTime;
 
                 return v2;
             });
-            db2->anim.getSprite().setRotation(160);
+            db->anim.getSprite().setRotation(135);
+            help->push_back(db);
 
-            help->push_back(db2);
+            db = nullptr;
 
-            pulseTimer = 0.2f;
+            db = new DioBullet(15, 50, this);
+            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
+                v2.x -= 2 * deltaTime * v;
+                v2.y += 2 * v * deltaTime;
+
+                return v2;
+            });
+            db->anim.getSprite().setRotation(225);
+            help->push_back(db);
+
+            db = nullptr;
+            delete db;
+
+            pulseTimer = 0.05f;
             pulseCounter += 1;
         } 
     }
@@ -512,33 +516,50 @@ public:
             pulseTimer = 0.5f;
             pulseCounter += 1;
         }
-
-	    
     }
 
     void patternThree() {
 	    std::cout << "Woah3\n" << std::flush;
-	    auto db = new DioBullet(15, 50, this);
-        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
-            v2.x += 0;
-            v2.y += v * deltaTime;
-            return v2; 
-        });
-        help->push_back(db);
+        pulseTimer -= deltaTime;
+
+        if (pulseTimer <= 0.f) {
+        	auto db = new DioBullet(15, 50, this);
+            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
+                v2.x += 0;
+                v2.y += v * deltaTime;
+                return v2;
+                       });
+            help->push_back(db);
+
+            pulseTimer = 0.5f;
+            pulseCounter += 1;
+        }
     }
 
     void patternFour() {
 	    std::cout << "Woah4\n" << std::flush;
-	    auto db = new DioBullet(15, 50, this);
-        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
-            v2.x += 0;
-            v2.y += v * deltaTime;
-            return v2; 
-        });
-        help->push_back(db);
+        pulseTimer -= deltaTime;
+
+        if (pulseTimer <= 0.f) {
+		    auto db = new DioBullet(15, 50, this);
+	        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+	            v2.x += 0;
+	            v2.y += v * deltaTime;
+	            return v2; 
+	        });
+	        help->push_back(db);
+
+            pulseTimer = 0.5f;
+            pulseCounter += 1;
+        }
     }
 
 private:
+    bool oob() {
+        return pos.x <= tSize.x / 2 || pos.x >= width - tSize.x / 2;
+    }
+
+
     float moveTimer = 0;
     // 1 = right, -1 = left;
     int moveDir = 1;
@@ -546,7 +567,7 @@ private:
     Animation bulletAnim;
     bool firing = false;
     float pulseTimer = 0.f;
-    int pulseCounts[4] = {6, 2, 2, 2};
+    int pulseCounts[4] = {4, 2, 2, 2};
     int pulseCounter = 0;
     int currentPattern = 0;
 };
@@ -594,12 +615,11 @@ int main() {
     bgrnd->config(bgra, Vector2f(2.f, 2.f), Vector2f(width / 2, height / 2), 0);
     enemy->config(ea, ba2, Vector2f(0.3f, 0.3f), Vector2f(width / 2, height / 4), 100);
     player->speed = 500;
-    enemy->speed = 200;
+    enemy->speed = 125;
 
     entities.push_back(bgrnd);
     entities.push_back(player);
     entities.push_back(enemy);
-
 
     Clock clock;
     auto touhou = new Video;
@@ -629,21 +649,26 @@ int main() {
         for (auto it = entities.begin(); it != entities.end();) {
             (*it)->tick();
 
-            if ((*it)->markedForNegation)
+            if ((*it)->markedForNegation) {
+                delete *it;
+                std::cout << (*it)->name << std::endl;
                 it = entities.erase(it);
+            }
 
             if (it != entities.end())
                 it++;
         }
+
+        if (player->markedForNegation)
+            text.setString("Game Over!");
+        else 
+            text.setString("Dio: " + std::to_string(enemy->getHealth()));
 
         for (auto e: entities) {
 	        for (auto b: entities) {
                 e->collision(b);
 	        }
         }
-
-        text.setString("Dio: " + std::to_string(enemy->getHealth()));
-        // std::cout << enemy->getHealth() << std::endl;
 
         window.clear();
 
