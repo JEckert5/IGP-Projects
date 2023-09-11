@@ -9,11 +9,16 @@
 
 using namespace sf;
 
-int width = 1280, height = 1280;
+int width = 800, height = 800;
 
 static float deltaTime = 0.0f;
+const Vector2f bulletScale(0.6f, 0.6f);
 
 std::mt19937 m;
+
+float lerp(float a, float b, float t) {
+    return a + t * (b - a);
+}
 
 // Ripped from the asteroid demo.
 class Animation {
@@ -81,13 +86,13 @@ public:
 
     virtual ~Entity() = default;
 
-    virtual void tick() { }
+    virtual void tick() { 
+        anim.update();
+    }
 
-    virtual void draw(RenderWindow& window) { }
-
-    float getSpeed() const { return speed; }
-
-    void setSpeed(const float x) { speed = x; }
+    virtual void draw(RenderWindow& window) {
+        window.draw(anim.getSprite());
+     }
 
     virtual bool collision(Entity* other) {
         if (other == this)
@@ -103,8 +108,6 @@ public:
     float hitRadius;
     Vector2f scale;
     bool markedForNegation = false;
-
-protected:
     Animation anim;
     float speed = 0;
 };
@@ -192,7 +195,7 @@ private:
     float fps, accumulator;
 };
 
-class Player final : public Entity {
+class Player: public Entity {
 public:
     Player(Animation& a) {
         pos.y = height - a.getSprite().getTexture()->getSize().y;
@@ -208,6 +211,8 @@ public:
         anim.getSprite().setPosition(pos);
 
         name = "Player";
+        health = 100;
+        hitRadius = 75;
     }
 
     void tick() override {
@@ -226,13 +231,18 @@ public:
         pos.y = std::clamp<float>(pos.y, tSize.y / 2, height - (tSize.y / 2));
 
         anim.getSprite().setPosition(pos);
-        fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : fireTimer;
+        fireTimer = fireTimer > -0.1f ? fireTimer - deltaTime : fireTimer;
     }
-
-    
 
     void draw(RenderWindow& window) override {
         window.draw(anim.getSprite());
+
+        CircleShape circle(hitRadius);
+        circle.setFillColor(Color(255, 0, 0, 170));
+        circle.setPosition(pos);
+        circle.setOrigin(hitRadius, hitRadius);
+
+        window.draw(circle);
     }
 
     bool readyToFire() const {
@@ -240,7 +250,7 @@ public:
     }
 
     void resetFireTimer() {
-        fireTimer = 2;
+        fireTimer = 0.3f;
     }
 
     unsigned int damage(unsigned int dmg) {
@@ -252,27 +262,138 @@ public:
         return health;
     }
 
-private:
-    int health = 100;
+protected:
+    int health;
     float fireTimer = -0.1f;
     Vector2f tSize;
 };
 
-class Dio final: public Entity {
+class Bullet: public Entity {
 public:
-    Dio(const Uint32& h, std::list<Entity*>* ptr): health(h), help(ptr) {
+	Bullet(float p, float v, Entity* s): velocity(v), power(p) {
+        scale.x = 0.5f;
+        scale.y = 0.5f;
+        name = "Bullet";
+        source = s;
+        markedForNegation = false;
+    }
+
+    void tick() override {
+        anim.update();
+        pos.y -= velocity * deltaTime;
+        anim.getSprite().setPosition(pos);
+        // anim.getSprite().setRotation(upDown ? 0 : 180);
+
+        if (pos.y < 0 || pos.y > height || pos.x < 0 || pos.x > width)
+            markedForNegation = true;
+    }
+
+    void draw(RenderWindow& window) override {
+        window.draw(anim.getSprite());
+
+        // CircleShape circle(hitRadius);
+        // circle.setFillColor(Color(255, 0, 0, 170));
+        // circle.setPosition(pos);
+        // circle.setOrigin(hitRadius, hitRadius);
+
+        // window.draw(circle);
+    }
+
+    bool collision(Entity* other) override {
+        if (other == source)
+            return false;
+
+        if (Entity::collision(other)) {
+            // std::cout << "Collision in bullet" << std::endl;
+            if (other->name == "Dio" || other->name == "Player") {
+                dynamic_cast<Player*>(other)->damage(power);
+                markedForNegation = true;
+            }
+
+            return true;
+        }
+
+        return false;
+	}
+
+protected:
+    float velocity;
+    float power;
+    Entity* source;
+};
+
+class DioBullet: public Bullet {
+public:
+    DioBullet(float p, float v, Entity* s): Bullet(p, v, s) { }
+
+    void config(Animation& a, Vector2f s, Vector2f p, float r, Vector2f (*func)(Vector2f x, float y, float v, bool d)) {
+        Bullet::config(a, s, p, r);
+
+        interpFunc = func;
+    }
+
+    void tick() {
+        pos = interpFunc(pos, schlerp, velocity, schlerpDir);
+
+        schlerp = schlerpDir ? schlerp + deltaTime * 2 : schlerp - deltaTime * 2;
+        schlerp = std::clamp<float>(schlerp, -1.f, 1.f);
+
+        if (schlerp == -1.f)
+            schlerpDir = 1;
+        else if (schlerp == 1.f)
+            schlerpDir = 0;
+
+        anim.update();
+        anim.getSprite().setPosition(pos);
+
+        if (pos.y < 0 || pos.y > height || pos.x < 0 || pos.x > width)
+            markedForNegation = true;
+    }
+private:
+    Vector2f (*interpFunc)(Vector2f x, float y, float v, bool sd);
+    float schlerp = 0.f;
+    bool schlerpDir = 0;
+};
+
+class Dio final: public Player {
+public:
+    Dio(Animation& a, const int& h, std::list<Entity*>* ptr): Player(a), help(ptr) {
         scale.x = 0.3f;
         scale.y = 0.3f;
 
         anim.getSprite().setScale(scale);
         name = "Dio";
+        health = h;
     }
 
     void tick() override {
-        if (m() % 100 > 25 && readyToFire()) {
+        if (readyToFire() && !firing) {
             resetFireTimer();
+            firing = true;
 
-            switch (m() % 5 + 1) {
+            switch (m() % 4 + 1) {
+            case 1:
+                patternOne();
+                currentPattern = 1;
+                break;
+            case 2:
+                patternTwo();
+                currentPattern = 2;
+                break;
+            case 3:
+                patternThree();
+                currentPattern = 3;
+                break;
+            case 4:
+                patternFour();
+                currentPattern = 4;
+                break;
+            default:
+                std::cout << "How" << std::endl;
+                break;
+            }
+        } else if (firing) {
+            switch (currentPattern) {
             case 1:
                 patternOne();
                 break;
@@ -286,11 +407,14 @@ public:
                 patternFour();
                 break;
             default:
-                std::cout << "How" << std::endl;
                 break;
             }
-        }
 
+            if (pulseCounter >= pulseCounts[currentPattern - 1]){
+                pulseCounter = 0;
+                firing = false;
+            }
+        }
 
         if (moveTimer <= 0) {
             moveTimer = m() % 4 + 1;
@@ -312,18 +436,17 @@ public:
             moveTimer -= deltaTime * 1.25f;
         }
 
-        std::cout << moveTimer << std::endl;
-
         pos.x += moveDir * speed * deltaTime;
 
         anim.getSprite().setPosition(pos);
-        fireTimer = fireTimer > -0.1f ? fireTimer - 0.1f : fireTimer;
+        fireTimer = fireTimer > -0.1f ? fireTimer - deltaTime : fireTimer;
     }
 
-    void config(Animation& a, Vector2f s, Vector2f p, float r) override {
+    void config(Animation& a, Animation bAnim, Vector2f s, Vector2f p, float r) {
         Entity::config(a, s, p, r);
 
         tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * 0.3f;
+        bulletAnim = bAnim;
     }
 
     void draw(RenderWindow& window) override {
@@ -334,19 +457,6 @@ public:
 
         window.draw(anim.getSprite());
         // window.draw(circle);
-    }
-
-    unsigned int damage(unsigned int dmg) {
-        health -= dmg;
-
-        if (health <= 0)
-            markedForNegation = true;
-
-        return health;
-    }
-
-    bool readyToFire() const {
-        return fireTimer < 0;
     }
 
     int getHealth() const {
@@ -354,114 +464,91 @@ public:
     }
 
     void resetFireTimer() {
-        fireTimer = 2;
+        fireTimer = 2.5f;
     }
 
     // Fuck
     void patternOne() {
-	    
+        pulseTimer -= deltaTime;
+
+        if (pulseTimer <= 0.f) {
+            auto db = new DioBullet(15, 50, this);
+            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+                v2.x += 0;
+                v2.y += 2 * v * deltaTime;
+                return v2;
+            });
+            help->push_back(db);
+
+            auto db2 = new DioBullet(15, 50, this);
+            db2->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
+                v2.x += 2 * deltaTime * v;
+                v2.y += 2 * v * deltaTime;
+
+                return v2;
+            });
+            db2->anim.getSprite().setRotation(160);
+
+            help->push_back(db2);
+
+            pulseTimer = 0.2f;
+            pulseCounter += 1;
+        } 
     }
 
     void patternTwo() {
+	    std::cout << "Woah2\n" << std::flush;
+        pulseTimer -= deltaTime;
+
+        if (pulseTimer <= 0.f) {
+            auto db = new DioBullet(15, 50, this);
+            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+                v2.x += 0;
+                v2.y += v * deltaTime;
+                return v2;
+            });
+            help->push_back(db);
+
+            pulseTimer = 0.5f;
+            pulseCounter += 1;
+        }
+
 	    
     }
 
     void patternThree() {
-	    
+	    std::cout << "Woah3\n" << std::flush;
+	    auto db = new DioBullet(15, 50, this);
+        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+            v2.x += 0;
+            v2.y += v * deltaTime;
+            return v2; 
+        });
+        help->push_back(db);
     }
 
     void patternFour() {
-	    
+	    std::cout << "Woah4\n" << std::flush;
+	    auto db = new DioBullet(15, 50, this);
+        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+            v2.x += 0;
+            v2.y += v * deltaTime;
+            return v2; 
+        });
+        help->push_back(db);
     }
 
 private:
-    unsigned int health;
-    float fireTimer = -0.1f;
     float moveTimer = 0;
     // 1 = right, -1 = left;
     int moveDir = 1;
-    Vector2f tSize;
     std::list<Entity*>* help;
-};
-
-class Bullet: public Entity {
-public:
-	/**
-	 * \brief Bullet Constructor
-	 * \param v velocity
-	 * \param pos starting position
-	 * \param p power
-	 * \param ud true = up, false = down
-	 * \param s the source of the bullet
-	 */
-	Bullet(float p, bool ud, float v, Entity* s): upDown(ud), velocity(v), power(p) {
-        scale.x = 0.5f;
-        scale.y = 0.5f;
-        name = "Bullet";
-        source = s;
-        markedForNegation = false;
-    }
-
-    void tick() override {
-        anim.update();
-        pos.y -= upDown ? velocity * deltaTime : -velocity * deltaTime;
-        anim.getSprite().setPosition(pos);
-        anim.getSprite().setRotation(upDown ? 0 : 180);
-
-        if (pos.y < 0 || pos.y > height || pos.x < 0 || pos.x > width)
-            markedForNegation = true;
-    }
-
-    void draw(RenderWindow& window) override {
-        window.draw(anim.getSprite());
-
-        CircleShape circle(hitRadius);
-        circle.setFillColor(Color(255, 0, 0, 170));
-        circle.setPosition(pos);
-        circle.setOrigin(hitRadius, hitRadius);
-
-        // window.draw(circle);
-    }
-
-    bool collision(Entity* other) override {
-        if (other == source)
-            return false;
-
-        if (Entity::collision(other)) {
-            std::cout << "Collision in bullet" << std::endl;
-            if (other->name == "Dio") {
-                dynamic_cast<Dio*>(other)->damage(power);
-                markedForNegation = true;
-            } else if (other->name == "Player") {
-                dynamic_cast<Player*>(other)->damage(power);
-                markedForNegation = true;
-            }
-
-            return true;
-        }
-
-        return false;
-	}
-
-    bool upDown;
-
-protected:
-    float velocity;
-    float power;
-    Entity* source;
-};
-
-class DioBullet: public Bullet {
-public:
-    void config(Animation& a, Vector2f s, Vector2f p, float r, Vector2f dir) {
-        direction = dir;
-    }
-
-    void tick() {
-	    
-    }
-private:
-    Vector2f direction;
+    Animation bulletAnim;
+    bool firing = false;
+    float pulseTimer = 0.f;
+    int pulseCounts[4] = {6, 2, 2, 2};
+    int pulseCounter = 0;
+    int currentPattern = 0;
 };
 
 int main() {
@@ -479,32 +566,40 @@ int main() {
     }
 
     text.setFont(font);
-    text.setCharacterSize(100);
+    text.setCharacterSize(50);
     
     RenderWindow window(VideoMode(width, height), "Touhous Bizzare Adventure");
 
     std::list<Entity*> entities;
 
-    Texture pt, bt, bt2, et;
+    Texture pt, bt, bt2, et, bgr;
     pt.loadFromFile("images/player.png");
     bt.loadFromFile("images/bullet.png");
     bt2.loadFromFile("images/bullet-2.png");
     et.loadFromFile("images/enemy.png");
+    bgr.loadFromFile("images/optimum prime.png");
 
-    Animation ba, ba2, pa, ea;
+    Animation ba, ba2, pa, ea, bgra;
+    bgra = Animation(bgr, 0, 0, 400, 399, 1, 0.1f);
     pa = Animation(pt, 0, 0, 336, 229, 1, 0.1f);
     ba = Animation(bt, 0, 0, 32, 64, 16, 0.5f);
     ba2 = Animation(bt2, 0, 0, 32, 64, 16, 0.5f);
     ea = Animation(et, 0, 0, 1100, 1120, 1, 0.1f);
 
-    auto player = new Player(pa);
-    auto enemy = new Dio(5000, &entities);
-    enemy->config(ea, Vector2f(0.3f, 0.3f), Vector2f(width / 2, height / 4), 100);
-    player->setSpeed(500);
-    enemy->setSpeed(200);
+    ba2.getSprite().setRotation(180);
 
+    auto player = new Player(pa);
+    auto enemy = new Dio(ea, 5000, &entities);
+    auto bgrnd = new Entity;
+    bgrnd->config(bgra, Vector2f(2.f, 2.f), Vector2f(width / 2, height / 2), 0);
+    enemy->config(ea, ba2, Vector2f(0.3f, 0.3f), Vector2f(width / 2, height / 4), 100);
+    player->speed = 500;
+    enemy->speed = 200;
+
+    entities.push_back(bgrnd);
     entities.push_back(player);
     entities.push_back(enemy);
+
 
     Clock clock;
     auto touhou = new Video;
@@ -525,8 +620,8 @@ int main() {
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire()) {
-            auto nb = new Bullet(10, true, 750, player);
-            nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, player->pos, 10);
+            auto nb = new Bullet(10, 750, player);
+            nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, 10);
             entities.push_back(nb);
             player->resetFireTimer();
         }
@@ -548,6 +643,7 @@ int main() {
         }
 
         text.setString("Dio: " + std::to_string(enemy->getHealth()));
+        // std::cout << enemy->getHealth() << std::endl;
 
         window.clear();
 
