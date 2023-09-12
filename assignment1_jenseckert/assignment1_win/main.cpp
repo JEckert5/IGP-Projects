@@ -10,25 +10,40 @@
 
 using namespace sf;
 
-int width = 1000, height = 1000;
+static int width = 1000, height = 1000;
 
 static float deltaTime = 0.0f;
 static const Vector2f bulletScale(0.6f, 0.6f);
-static constexpr float dioBulletVel = 100.f;
+static constexpr float dioBulletVel = 200.f;
 static constexpr float dioBulletDmg = 5;
+static constexpr float playerBulletDmg = 10;
+static constexpr float bulletRadius = 10;
 static bool paused = false;
 
 std::mt19937 m;
 
+/**
+ * \brief Naive interpolation.
+ * \param a min
+ * \param b max
+ * \param t time
+ * \return Interpolated value between a and b at t
+ */
 float lerp(float a, float b, float t) {
     return a + t * (b - a);
 }
 
-// Ripped from the asteroid demo.
+/**
+ * \brief Animation class for cycling through a sprite sheet or static png.
+ */
 class Animation {
 public:
     Animation() = default;
 
+    /**
+     * \brief Copy Constructor.
+     * \param other Animation to copy.
+     */
     Animation(const Animation& other) {
         sprite = other.sprite;
         fps = other.fps;
@@ -36,6 +51,16 @@ public:
         frames = other.frames;
     }
 
+    /**
+     * \brief Constructor that actually constructs
+     * \param t Texture
+     * \param x Origin x
+     * \param y Origin y
+     * \param w width of each sprite tile
+     * \param h height of each sprite tile
+     * \param count frame count
+     * \param speed Time the animation takes(in seconds).
+     */
     Animation(Texture& t, int x, int y, int w, int h, int count, float speed) {
         frame = 0;
         fps = speed;
@@ -48,6 +73,9 @@ public:
         sprite.setTextureRect(frames[0]);
     }
 
+    /**
+     * \brief Update frame value and advance frame if near whole number.
+     */
     void update() {
         frame += fps;
         int n = frames.size();
@@ -62,14 +90,20 @@ public:
 private:
     Sprite sprite;
     std::vector<IntRect> frames;
-
     float frame = 0, fps = 0;
 };
 
+/**
+ * \brief Base Entity class with no special functionality.
+ */
 class Entity {
 public:
     Entity() = default;
 
+    /**
+     * \brief Copy constructor
+     * \param other Enitity to copy.
+     */
     Entity(const Entity& other) {
         name = other.name;
         pos = other.pos;
@@ -79,6 +113,13 @@ public:
         hitRadius = other.hitRadius;
     }
 
+    /**
+     * \brief Configure various parameters of the Entity. Can be overloaded.
+     * \param a Animation
+     * \param s Scale
+     * \param p Initial Position
+     * \param r Hit circle radius
+     */
     virtual void config(Animation& a, Vector2f s, Vector2f p, float r) {
         anim = a;
         pos = p;
@@ -88,22 +129,38 @@ public:
         anim.getSprite().setPosition(p);
     }
 
+    /**
+     * \brief If an Entity needs to be instantiated without a base class, a lambda can be passed as the tick function.
+     * \param t Lambda tick
+     */
     virtual void setTick(std::function<void()> t) {
-        optionalTick = t;
+        optionalTick = std::move(t);
     }
 
     virtual ~Entity() = default;
 
+    /**
+     * \brief Default tick function. Can be overloaded.
+     */
     virtual void tick() { 
         anim.update();
         if (optionalTick)
             optionalTick();
     }
 
+    /**
+     * \brief Default draw function.
+     * \param window Reference to the main RenderWindow object
+     */
     virtual void draw(RenderWindow& window) {
         window.draw(anim.getSprite());
     }
 
+    /**
+     * \brief Check for collision with another Entity.
+     * \param other Entity to check against.
+     * \return true if colliding with other object, false if not.
+     */
     virtual bool collision(Entity* other) {
         if (other == this)
             return false;
@@ -123,9 +180,15 @@ public:
     std::function<void()> optionalTick;
 };
 
+/**
+ * \brief Very stupid Video player class. DO NOT USE SERIOUSLY.
+ */
 class Video final : public Entity {
 public:
-    Video(){
+	/**
+	 * \brief Default constructor. Sets values.
+	 */
+	Video(){
         name = "Video";
 
         playing = false;
@@ -134,8 +197,14 @@ public:
         fps = 0;
     }
 
-    // relies on files having format 'output-XXXX.png' naming format.
-    void install(const std::string& frameFolder, const int numFrames, const float fps, const std::string& audioPath) {
+	/**
+	 * \brief Load all necessary images. Images NEED to be in format 'output-XXXX.png'.
+	 * \param frameFolder Path to folder containing images/frames
+	 * \param numFrames number of frames
+	 * \param fps the fps of the video
+	 * \param audioPath path to the audio
+	 */
+	void install(const std::string& frameFolder, const int numFrames, const float fps, const std::string& audioPath) {
         this->fps = 1 / fps;
         audio.openFromFile(audioPath);
 
@@ -159,7 +228,10 @@ public:
         }
     }
 
-    void tick() override {
+	/**
+	 * \brief Tick frames.
+	 */
+	void tick() override {
         if (!playing)
             return;
 
@@ -176,14 +248,20 @@ public:
         }
     }
 
-    void start() {
+	/**
+	 * \brief Start playback.
+	 */
+	void start() {
         audio.play();
         playing = true;
         frame = 0;
         sprite.setTexture(frames[frame]);
     }
 
-    void stop() {
+	/**
+	 * \brief Stop playback.
+	 */
+	void stop() {
         audio.stop();
         playing = false;
         frame = 0;
@@ -206,9 +284,16 @@ private:
     float fps, accumulator;
 };
 
+/**
+ * \brief Player class. Implements moving around and shoot timing.
+ */
 class Player: public Entity {
 public:
-    Player(Animation& a) {
+	/**
+	 * \brief Default constructor. Takes an animation object.
+	 * \param a Animation object reference
+	 */
+	Player(Animation& a) {
         pos.y = height - a.getSprite().getTexture()->getSize().y;
 
         scale = Vector2f(0.4f, 0.4f);
@@ -227,7 +312,10 @@ public:
         hitRadius = 50;
     }
 
-    void tick() override {
+	/**
+	 * \brief Tick position bounds + movement input.
+	 */
+	void tick() override {
         anim.update();
 
         if (Keyboard::isKeyPressed(Keyboard::A) || Keyboard::isKeyPressed(Keyboard::Left))
@@ -240,21 +328,10 @@ public:
             pos.y += speed * deltaTime;
 
         pos.x = std::clamp<float>(pos.x, tSize.x *1.5f, static_cast<float>(width) - (tSize.x * 1.5f));
-        pos.y = std::clamp<float>(pos.y, tSize.y * 1.5f, static_cast<float>(height) - (tSize.y * 1.5f));
+        pos.y = std::clamp<float>(pos.y, tSize.y * 5.f, static_cast<float>(height) - (tSize.y * 1.5f));
 
         anim.getSprite().setPosition(pos);
         fireTimer = fireTimer > -0.1f ? fireTimer - deltaTime : fireTimer;
-    }
-
-    void draw(RenderWindow& window) override {
-        window.draw(anim.getSprite());
-
-        CircleShape circle(hitRadius);
-        circle.setFillColor(Color(255, 0, 0, 170));
-        circle.setPosition(pos);
-        circle.setOrigin(hitRadius, hitRadius);
-
-        // window.draw(circle);
     }
 
     bool readyToFire() const {
@@ -265,7 +342,12 @@ public:
         fireTimer = 0.12f;
     }
 
-    unsigned int damage(unsigned int dmg) {
+	/**
+	 * \brief Applies damage to player.
+	 * \param dmg damage
+	 * \return health remaining.
+	 */
+	unsigned int damage(unsigned int dmg) {
         health -= dmg;
 
         if (health <= 0)
@@ -274,7 +356,10 @@ public:
         return health;
     }
 
-    virtual void reset() {
+	/**
+	 * \brief reset all member values to default.
+	 */
+	virtual void reset() {
         pos.y = height - tSize.y;
         pos.x = width / 4;
         markedForNegation = false;
@@ -291,71 +376,25 @@ protected:
 
 class Bullet: public Entity {
 public:
-	Bullet(float p, float v, Entity* s): velocity(v), power(p) {
-        scale.x = 0.5f;
-        scale.y = 0.5f;
-        name = "Bullet";
-        source = s;
-        markedForNegation = false;
-    }
-
-    void tick() override {
-        anim.update();
-        pos.y -= velocity * deltaTime;
-        anim.getSprite().setPosition(pos);
-        // anim.getSprite().setRotation(upDown ? 0 : 180);
-
-        if (pos.y < 0 || pos.y > height || pos.x < 0 || pos.x > width)
-            markedForNegation = true;
-    }
-
-    void draw(RenderWindow& window) override {
-        window.draw(anim.getSprite());
-
-        // CircleShape circle(hitRadius);
-        // circle.setFillColor(Color(255, 0, 0, 170));
-        // circle.setPosition(pos);
-        // circle.setOrigin(hitRadius, hitRadius);
-
-        // window.draw(circle);
-    }
-
-    bool collision(Entity* other) override {
-        if (other == source)
-            return false;
-
-        if (Entity::collision(other)) {
-            // std::cout << "Collision in bullet" << std::endl;
-            if (other->name == "Dio" || other->name == "Player") {
-                dynamic_cast<Player*>(other)->damage(power);
-                markedForNegation = true;
-            }
-
-            return true;
-        }
-
-        return false;
-	}
-
-protected:
-    float velocity;
-    float power;
-    Entity* source;
-};
-
-class DioBullet: public Bullet {
-public:
-    DioBullet(float p, float v, Entity* s): Bullet(p, v, s) { }
-
     enum class SchlerpType {
-	    INF = 1,
+        INF = 1,
         LERP,
         NONE,
     };
 
-    void config(Animation& a, Vector2f s, Vector2f p, float r, SchlerpType st, std::function<Vector2f(Vector2f, float, float, bool)> func) {
-        Bullet::config(a, s, p, r);
+    Bullet(Animation& a, Vector2f pos, float pow, float v, Entity* s, float radius): sType(SchlerpType::NONE), velocity(v), power(pow) {
+        scale = bulletScale;
+        anim = a;
+        this->pos = pos;
+        hitRadius = radius;
+        markedForNegation = false;
+        source = s;
+        interpFunc = [](Vector2f v2, float t, float v, bool d) {
+            return v2;
+        };
+    }
 
+    void config(SchlerpType st, std::function<Vector2f(Vector2f, float, float, bool)> func) {
         interpFunc = std::move(func);
         sType = st;
     }
@@ -387,12 +426,33 @@ public:
         if (pos.y < 0 || pos.y > height || pos.x < 0 || pos.x > width)
             markedForNegation = true;
     }
+
+    bool collision(Entity* other) override {
+        if (other == source)
+            return false;
+
+        if (Entity::collision(other)) {
+            // std::cout << "Collision in bullet" << std::endl;
+            if (other->name == "Dio" || other->name == "Player") {
+                dynamic_cast<Player*>(other)->damage(power);
+                markedForNegation = true;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+
 private:
     std::function<Vector2f(Vector2f, float, float, bool)> interpFunc;
-    // Vector2f (*interpFunc)(Vector2f x, float y, float v, bool sd);
     float schlerp = 0.001f;
     bool schlerpDir = true;
     SchlerpType sType;
+    float velocity;
+    float power;
+    Entity* source;
 };
 
 class Dio final: public Player {
@@ -434,9 +494,7 @@ public:
                 break;
             }
 
-            // patternFour();
-
-            if (pulseCounter >= pulseCounts[currentPattern - 1]){
+            if (pulseCounter > pulseCounts[currentPattern - 1]){
                 pulseCounter = 0;
                 firing = false;
             }
@@ -476,18 +534,8 @@ public:
         bulletAnim = bAnim;
     }
 
-    void draw(RenderWindow& window) override {
-        CircleShape circle(hitRadius);
-        circle.setFillColor(Color(255, 0, 0, 170));
-        circle.setPosition(pos);
-        circle.setOrigin(hitRadius, hitRadius);
-
-        window.draw(anim.getSprite());
-        // window.draw(circle);
-    }
-
     void resetFireTimer() override {
-        fireTimer = 2.5f;
+        fireTimer = 1.5f;
     }
 
     /**
@@ -497,9 +545,9 @@ public:
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-            auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
-            db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) { 
-                v2.x += 0;
+            // auto db = new Bullet(dioBulletDmg, dioBulletVel, this);
+            auto db = new Bullet(bulletAnim, pos, dioBulletDmg, dioBulletVel, this, bulletRadius);
+            db->config(Bullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
                 v2.y += deltaTime * v;
                 return v2;
             });
@@ -507,10 +555,8 @@ public:
 
             db = nullptr;
 
-            db = new DioBullet(dioBulletDmg, dioBulletVel, this);
-
-            //auto db2 = new DioBullet(15, 50, this);
-            db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
+            db = new Bullet(bulletAnim, pos, dioBulletDmg, dioBulletVel, this, bulletRadius);
+            db->config(Bullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
                 v2.x += deltaTime * v;
                 v2.y += deltaTime * v;
 
@@ -521,8 +567,8 @@ public:
 
             db = nullptr;
 
-            db = new DioBullet(dioBulletDmg, dioBulletVel, this);
-            db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
+            db = new Bullet(bulletAnim, pos, dioBulletDmg, dioBulletVel, this, bulletRadius);
+            db->config(Bullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
                 v2.x -= deltaTime * v;
                 v2.y += deltaTime * v;
 
@@ -550,15 +596,15 @@ public:
             center->pos = pos;
 
             center->setTick([center]() {
-                center->pos.y += deltaTime * 100;
+                center->pos.y += deltaTime * dioBulletVel;
             });
 
             help->push_back(center);
 
 
             for (int i = 0; i < 9; i++) {
-                auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
-                db->config(bulletAnim, bulletScale, center->pos, 10, DioBullet::SchlerpType::INF, [center, i](Vector2f v2, float t, float v, bool d) {
+                auto db = new Bullet(bulletAnim, pos, dioBulletDmg, 0, this, bulletRadius);
+                db->config(Bullet::SchlerpType::INF, [center, i](Vector2f v2, float t, float v, bool d) {
                     const auto angle = static_cast<float>(i * 40) + t;
                     const float dist = t * 50;
 
@@ -570,9 +616,8 @@ public:
                 help->push_back(db);
                 db = nullptr;
             }
-            
 
-            pulseTimer = 0.5f;
+            pulseTimer = 0.35f;
             pulseCounter += 1;
         }
     }
@@ -584,8 +629,8 @@ public:
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-        	auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
-            db->config(bulletAnim, bulletScale, pos, 10,DioBullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) {
+        	auto db = new Bullet(bulletAnim, pos, dioBulletDmg, dioBulletVel, this, bulletRadius);
+            db->config(Bullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) {
                 v2.x += (d ? lerp(0, 200, t) : -lerp(0, 200, t)) * deltaTime;
                 v2.y += v * deltaTime;
 
@@ -606,8 +651,8 @@ public:
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-		    auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
-	        db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) { 
+		    auto db = new Bullet(bulletAnim, pos, dioBulletDmg, dioBulletVel, this, bulletRadius);
+	        db->config(Bullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) { 
 	            v2.x += 0;
                 v2.y += (d ? lerp(0, 300, t) : -lerp(0, 100, t)) * deltaTime;
 	            return v2;
@@ -647,21 +692,25 @@ int main() {
     auto r = new std::random_device;
     m.seed((*r)());
     delete r;
+    Music music;
+    music.openFromFile("audio/jojo.wav");
 
-    Text text;
+    Text dioHealth, playerHealth;
     Font font;
-    text.setPosition(width * 0.8f, height * 0.75f);
+    dioHealth.setPosition(width * 0.7f, height * 0.75f);
+    playerHealth.setPosition(width * 0.2f, height * 0.75f);
 
     if (!font.loadFromFile("images/MGS2.ttf")) {
         std::cout << "Could not load font" << std::endl;
         return -1;
     }
 
-    text.setFont(font);
-    text.setCharacterSize(50);
+    dioHealth.setFont(font);
+    playerHealth.setFont(font);
+    dioHealth.setCharacterSize(50);
+    playerHealth.setCharacterSize(50);
     
     RenderWindow window(VideoMode(width, height), "Touhous Bizzare Adventure");
-    // window.setFramerateLimit(60);
 
     std::list<Entity*> entities;
 
@@ -696,6 +745,8 @@ int main() {
     Clock clock;
     auto touhou = new Video;
 
+    music.play();
+
     while (window.isOpen()) {
         deltaTime = clock.restart().asSeconds();
 
@@ -713,8 +764,13 @@ int main() {
             }
 
             if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire() && !player->markedForNegation) {
-                auto nb = new Bullet(10, 850, player);
-                nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, 10);
+                // auto nb = new Bullet(10, 850, player);
+                auto nb = new Bullet(ba, player->pos, playerBulletDmg, 850, player, bulletRadius);
+                nb->config(Bullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
+                    v2.y -= v * deltaTime;
+
+                    return v2;
+                });
                 entities.push_back(nb);
                 player->resetFireTimer();
             }
@@ -723,7 +779,6 @@ int main() {
                 (*it)->tick();
 
                 if ((*it)->markedForNegation) {
-                    // delete* it;
                     it = entities.erase(it);
                 }
 
@@ -731,9 +786,9 @@ int main() {
                     it++;
             }
 
-            for (auto e : entities) {
+            for (auto a : entities) {
                 for (auto b : entities) {
-                    e->collision(b);
+                    a->collision(b);
                 }
             }
         } else { // is paused
@@ -746,28 +801,29 @@ int main() {
                 entities.push_back(bgrnd);
                 entities.push_back(player);
                 entities.push_back(enemy);
-                text.setPosition(width * 0.8f, height * 0.75f);
+                dioHealth.setPosition(width * 0.8f, height * 0.75f);
 	        }
         }
 
         if (player->markedForNegation) {
-            text.setString("Game Over!\nClick to retry");
-            text.setPosition(width / 3, height / 2);
+            dioHealth.setString("Game Over!\nClick to retry");
+            dioHealth.setPosition(width / 3, height / 2);
             paused = true;
         } else if (enemy->markedForNegation) {
-            text.setString("You Won!\nClick to restart");
-            text.setPosition(width / 3, height / 2);
+            dioHealth.setString("You Won!\nClick to restart");
+            dioHealth.setPosition(width / 3, height / 2);
             paused = true;
+        } else {
+            dioHealth.setString("Dio: " + std::to_string(enemy->health));
+            playerHealth.setString("Health: " + std::to_string(player->health));
         }
-        else
-            text.setString("Dio: " + std::to_string(enemy->health));
-
         window.clear();
 
         for (auto e: entities)
             e->draw(window);
 
-        window.draw(text);
+        window.draw(dioHealth);
+        window.draw(playerHealth);
 
         window.display();
     }
