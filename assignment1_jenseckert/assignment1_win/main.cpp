@@ -10,11 +10,13 @@
 
 using namespace sf;
 
-int width = 800, height = 800;
+int width = 1000, height = 1000;
 
 static float deltaTime = 0.0f;
-const Vector2f bulletScale(0.6f, 0.6f);
-static const float dioBulletVel = 100.f;
+static const Vector2f bulletScale(0.6f, 0.6f);
+static constexpr float dioBulletVel = 100.f;
+static constexpr float dioBulletDmg = 5;
+static bool paused = false;
 
 std::mt19937 m;
 
@@ -209,19 +211,20 @@ public:
     Player(Animation& a) {
         pos.y = height - a.getSprite().getTexture()->getSize().y;
 
+        scale = Vector2f(0.4f, 0.4f);
+
         anim = a;
-        anim.getSprite().setScale(0.6f, 0.6f);
+        anim.getSprite().setScale(scale);
 
         pos.x = width / 4;
 
-        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * 0.6f;
-        scale = anim.getSprite().getScale();
+        tSize = static_cast<Vector2f>(anim.getSprite().getTexture()->getSize()) * scale.x;
 
         anim.getSprite().setPosition(pos);
 
         name = "Player";
         health = 100;
-        hitRadius = 75;
+        hitRadius = 50;
     }
 
     void tick() override {
@@ -236,8 +239,8 @@ public:
         if (Keyboard::isKeyPressed(Keyboard::S) || Keyboard::isKeyPressed(Keyboard::Down))
             pos.y += speed * deltaTime;
 
-        pos.x = std::clamp<float>(pos.x, tSize.x / 2, width - (tSize.x / 2));
-        pos.y = std::clamp<float>(pos.y, tSize.y / 2, height - (tSize.y / 2));
+        pos.x = std::clamp<float>(pos.x, tSize.x *1.5f, static_cast<float>(width) - (tSize.x * 1.5f));
+        pos.y = std::clamp<float>(pos.y, tSize.y * 1.5f, static_cast<float>(height) - (tSize.y * 1.5f));
 
         anim.getSprite().setPosition(pos);
         fireTimer = fireTimer > -0.1f ? fireTimer - deltaTime : fireTimer;
@@ -258,8 +261,8 @@ public:
         return fireTimer < 0;
     }
 
-    void resetFireTimer() {
-        fireTimer = 0.25f;
+    virtual void resetFireTimer() {
+        fireTimer = 0.12f;
     }
 
     unsigned int damage(unsigned int dmg) {
@@ -271,10 +274,19 @@ public:
         return health;
     }
 
-protected:
+    virtual void reset() {
+        pos.y = height - tSize.y;
+        pos.x = width / 4;
+        markedForNegation = false;
+        resetFireTimer();
+        health = 100;
+    }
+
     int health;
-    float fireTimer = -0.1f;
     Vector2f tSize;
+
+protected:
+    float fireTimer = -0.1f;
 };
 
 class Bullet: public Entity {
@@ -335,22 +347,39 @@ class DioBullet: public Bullet {
 public:
     DioBullet(float p, float v, Entity* s): Bullet(p, v, s) { }
 
-    void config(Animation& a, Vector2f s, Vector2f p, float r, std::function<Vector2f(Vector2f, float, float, bool)> func) {
+    enum class SchlerpType {
+	    INF = 1,
+        LERP,
+        NONE,
+    };
+
+    void config(Animation& a, Vector2f s, Vector2f p, float r, SchlerpType st, std::function<Vector2f(Vector2f, float, float, bool)> func) {
         Bullet::config(a, s, p, r);
 
-        interpFunc = func;
+        interpFunc = std::move(func);
+        sType = st;
     }
 
     void tick() {
         pos = interpFunc(pos, schlerp, velocity, schlerpDir);
 
-        schlerp = schlerpDir ? schlerp + deltaTime : schlerp - deltaTime;
-        schlerp = std::clamp<float>(schlerp, -1.f, 1.f);
+        switch (sType) {
+        case SchlerpType::INF:
+            schlerp += deltaTime;
+        	break;
+        case SchlerpType::LERP:
+            schlerp = schlerpDir ? schlerp + deltaTime : schlerp - deltaTime;
+            schlerp = std::clamp<float>(schlerp, 0.f, 1.f);
 
-        if (-1.f == schlerp)
-            schlerpDir = 1;
-        else if (schlerp == 1.f)
-            schlerpDir = 0;
+            if (0.f == schlerp)
+                schlerpDir = true;
+            else if (schlerp == 1.f)
+                schlerpDir = false;
+
+            break;
+        case SchlerpType::NONE:
+            break;
+        }
 
         anim.update();
         anim.getSprite().setPosition(pos);
@@ -361,8 +390,9 @@ public:
 private:
     std::function<Vector2f(Vector2f, float, float, bool)> interpFunc;
     // Vector2f (*interpFunc)(Vector2f x, float y, float v, bool sd);
-    float schlerp = 0.f;
-    bool schlerpDir = 0;
+    float schlerp = 0.001f;
+    bool schlerpDir = true;
+    SchlerpType sType;
 };
 
 class Dio final: public Player {
@@ -374,6 +404,11 @@ public:
         anim.getSprite().setScale(scale);
         name = "Dio";
         health = h;
+    }
+
+    ~Dio() override {
+        help = nullptr;
+        delete help;
     }
 
     void tick() override {
@@ -398,6 +433,8 @@ public:
             default:
                 break;
             }
+
+            // patternFour();
 
             if (pulseCounter >= pulseCounts[currentPattern - 1]){
                 pulseCounter = 0;
@@ -449,21 +486,19 @@ public:
         // window.draw(circle);
     }
 
-    int getHealth() const {
-        return health;
-    }
-
-    void resetFireTimer() {
+    void resetFireTimer() override {
         fireTimer = 2.5f;
     }
 
-    // Fuck
+    /**
+     * \brief Three beams
+     */
     void patternOne() {
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-            auto db = new DioBullet(15, dioBulletVel, this);
-            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+            auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
+            db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) { 
                 v2.x += 0;
                 v2.y += deltaTime * v;
                 return v2;
@@ -472,10 +507,10 @@ public:
 
             db = nullptr;
 
-            db = new DioBullet(15, dioBulletVel, this);
+            db = new DioBullet(dioBulletDmg, dioBulletVel, this);
 
             //auto db2 = new DioBullet(15, 50, this);
-            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
+            db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
                 v2.x += deltaTime * v;
                 v2.y += deltaTime * v;
 
@@ -486,8 +521,8 @@ public:
 
             db = nullptr;
 
-            db = new DioBullet(15, dioBulletVel, this);
-            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
+            db = new DioBullet(dioBulletDmg, dioBulletVel, this);
+            db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::NONE, [](Vector2f v2, float t, float v, bool d) {
                 v2.x -= deltaTime * v;
                 v2.y += deltaTime * v;
 
@@ -504,75 +539,98 @@ public:
         } 
     }
 
+    /**
+     * \brief Creates a ring of bullets that expand outward while rotating.
+     */
     void patternTwo() {
-	    // std::cout << "Woah2\n" << std::flush;
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-            auto empty = new Entity;
-            empty->pos = pos;
+            auto center = new Entity;
+            center->pos = pos;
 
-            empty->setTick([empty]() {
-                empty->pos.x += deltaTime;
-                empty->pos.y += deltaTime;
+            center->setTick([center]() {
+                center->pos.y += deltaTime * 100;
             });
 
-            help->push_back(empty);
-            auto db = new DioBullet(15, 100, this);
-            db->config(bulletAnim, bulletScale, pos, 10, [empty](Vector2f v2, float t, float v, bool d) { 
-                v2.x += empty->pos.x;
-                v2.y += v * deltaTime;
-                return v2;
-            });
-            help->push_back(db);
+            help->push_back(center);
+
+
+            for (int i = 0; i < 9; i++) {
+                auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
+                db->config(bulletAnim, bulletScale, center->pos, 10, DioBullet::SchlerpType::INF, [center, i](Vector2f v2, float t, float v, bool d) {
+                    const auto angle = static_cast<float>(i * 40) + t;
+                    const float dist = t * 50;
+
+                    v2.x = center->pos.x + dist * cosf(angle); //* deltaTime;
+                    v2.y = center->pos.y + dist * sinf(angle); //* deltaTime;
+
+                    return v2;
+                });
+                help->push_back(db);
+                db = nullptr;
+            }
+            
 
             pulseTimer = 0.5f;
             pulseCounter += 1;
         }
     }
 
+    /**
+     * \brief Sin wave.
+     */
     void patternThree() {
-	    // std::cout << "Woah3\n" << std::flush;
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-        	auto db = new DioBullet(15, 100, this);
-            db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) {
-                v2.x += 0;
+        	auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
+            db->config(bulletAnim, bulletScale, pos, 10,DioBullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) {
+                v2.x += (d ? lerp(0, 200, t) : -lerp(0, 200, t)) * deltaTime;
                 v2.y += v * deltaTime;
+
                 return v2;
-                       });
+            });
             help->push_back(db);
 
-            pulseTimer = 0.5f;
+            pulseTimer = 0.1f;
             pulseCounter += 1;
         }
     }
 
+    /**
+     * \brief Rain
+     */
     void patternFour() {
 	    // << "Woah4\n" << std::flush;
         pulseTimer -= deltaTime;
 
         if (pulseTimer <= 0.f) {
-		    auto db = new DioBullet(15, 100, this);
-	        db->config(bulletAnim, bulletScale, pos, 10, [](Vector2f v2, float t, float v, bool d) { 
+		    auto db = new DioBullet(dioBulletDmg, dioBulletVel, this);
+	        db->config(bulletAnim, bulletScale, pos, 10, DioBullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) { 
 	            v2.x += 0;
-	            v2.y += v * deltaTime;
-	            return v2; 
+                v2.y += (d ? lerp(0, 300, t) : -lerp(0, 100, t)) * deltaTime;
+	            return v2;
+
 	        });
 	        help->push_back(db);
 
-            pulseTimer = 0.5f;
+            pulseTimer = 0.185f;
             pulseCounter += 1;
         }
     }
 
-private:
-    bool oob() {
-        return pos.x <= tSize.x / 2 || pos.x >= width - tSize.x / 2;
+    void reset() override {
+        pos = Vector2f(width / 2, height / 4);
+        markedForNegation = false;
+        health = 1000;
+        resetFireTimer();
+        pulseCounter = 0;
+        currentPattern = 0;
+        firing = false;
     }
 
-
+private:
     float moveTimer = 0;
     // 1 = right, -1 = left;
     int moveDir = 1;
@@ -580,7 +638,7 @@ private:
     Animation bulletAnim;
     bool firing = false;
     float pulseTimer = 0.f;
-    int pulseCounts[4] = {4, 2, 2, 2};
+    int pulseCounts[4] = {5, 1, 6, 3};
     int pulseCounter = 0;
     int currentPattern = 0;
 };
@@ -603,6 +661,7 @@ int main() {
     text.setCharacterSize(50);
     
     RenderWindow window(VideoMode(width, height), "Touhous Bizzare Adventure");
+    // window.setFramerateLimit(60);
 
     std::list<Entity*> entities;
 
@@ -646,42 +705,62 @@ int main() {
                 window.close();
         }
 
-        if (Keyboard::isKeyPressed(Keyboard::F) && !touhou->isPlaying()) {
-            touhou->install("images/touhou", 6572, 30.0003f, "audio/badapple.wav");
-            entities.push_back(touhou);
-            touhou->start();
-        }
-
-        if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire()) {
-            auto nb = new Bullet(10, 750, player);
-            nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, 10);
-            entities.push_back(nb);
-            player->resetFireTimer();
-        }
-
-        for (auto it = entities.begin(); it != entities.end();) {
-            (*it)->tick();
-
-            if ((*it)->markedForNegation) {
-                delete *it;
-                // std::cout << (*it)->name << std::endl;
-                it = entities.erase(it);
+        if (!paused) {
+            if (Keyboard::isKeyPressed(Keyboard::F) && !touhou->isPlaying()) {
+                touhou->install("images/touhou", 6572, 30.0003f, "audio/badapple.wav");
+                entities.push_back(touhou);
+                touhou->start();
             }
 
-            if (it != entities.end())
-                it++;
-        }
+            if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire() && !player->markedForNegation) {
+                auto nb = new Bullet(10, 850, player);
+                nb->config(ba, Vector2f(0.6f, 0.6f), player->pos, 10);
+                entities.push_back(nb);
+                player->resetFireTimer();
+            }
 
-        if (player->markedForNegation)
-            text.setString("Game Over!");
-        else 
-            text.setString("Dio: " + std::to_string(enemy->getHealth()));
+            for (auto it = entities.begin(); it != entities.end();) {
+                (*it)->tick();
 
-        for (auto e: entities) {
-	        for (auto b: entities) {
-                e->collision(b);
+                if ((*it)->markedForNegation) {
+                    // delete* it;
+                    it = entities.erase(it);
+                }
+
+                if (it != entities.end())
+                    it++;
+            }
+
+            for (auto e : entities) {
+                for (auto b : entities) {
+                    e->collision(b);
+                }
+            }
+        } else { // is paused
+	        if (Mouse::isButtonPressed(Mouse::Left)) { // restart
+                paused = false;
+
+                player->reset();
+                enemy->reset();
+                entities.clear();
+                entities.push_back(bgrnd);
+                entities.push_back(player);
+                entities.push_back(enemy);
+                text.setPosition(width * 0.8f, height * 0.75f);
 	        }
         }
+
+        if (player->markedForNegation) {
+            text.setString("Game Over!\nClick to retry");
+            text.setPosition(width / 3, height / 2);
+            paused = true;
+        } else if (enemy->markedForNegation) {
+            text.setString("You Won!\nClick to restart");
+            text.setPosition(width / 3, height / 2);
+            paused = true;
+        }
+        else
+            text.setString("Dio: " + std::to_string(enemy->health));
 
         window.clear();
 

@@ -1,8 +1,8 @@
 ﻿  main.cpp
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(43,35): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(43,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(49,15): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(201,24): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(47,35): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(47,28): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(53,15): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(212,24): warning C4244: '=': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=unsigned int
@@ -11,33 +11,52 @@ C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(20
           [
               T=float
           ]
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(206,23): warning C4244: '=': conversion from 'int' to 'T', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(219,23): warning C4244: '=': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(309,54): warning C4244: 'argument': conversion from 'float' to 'unsigned int', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(399,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(407,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(415,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(615,72): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(279,23): warning C4244: '=': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(615,60): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(330,54): warning C4244: 'argument': conversion from 'float' to 'unsigned int', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(446,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(457,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(461,33): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(624,42): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(616,77): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(624,30): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(616,65): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(687,72): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(687,60): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(688,77): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(688,65): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(755,48): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(755,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(759,48): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\DevSus\school\UltraClone99\assignment1_jenseckert\assignment1_win\main.cpp(759,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   assignment1_win.vcxproj -> C:\DevSus\school\UltraClone99\assignment1_jenseckert\x64\Debug\assignment1_win.exe
