@@ -6,3 +6,6 @@ LIBS = -l sfml-system -l sfml-window -l sfml-graphics -l sfml-audio -l sfml-netw
 
 main:
 	g++ main.cpp $(OPTS) $(LIBS)
+
+clean:
+	rm a.out
