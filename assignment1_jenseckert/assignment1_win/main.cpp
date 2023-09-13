@@ -642,9 +642,9 @@ private:
 };
 
 int main() {
-    auto r = new std::random_device;
-    m.seed((*r)());
-    delete r;
+    std::random_device r;
+    m.seed(r());
+
     Music music;
     music.openFromFile("audio/jojo.wav");
 
