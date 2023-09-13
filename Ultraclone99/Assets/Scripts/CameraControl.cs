@@ -23,10 +23,10 @@ public class CameraControl : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
+    private void Update() {
         var mouseVals = mFPSControls.Gameplay.look.ReadValue<Vector2>();
-        var mouseX    = mouseVals.x * sensitivity * Time.deltaTime;
-        var mouseY    = mouseVals.y * sensitivity * Time.deltaTime;
+        var mouseX = mouseVals.x * sensitivity * Time.deltaTime;
+        var mouseY = mouseVals.y * sensitivity * Time.deltaTime;
 
         mXRotation -= mouseY;
         mXRotation =  Mathf.Clamp(mXRotation, -mMaxXRot, mMaxXRot);

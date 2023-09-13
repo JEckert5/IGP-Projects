@@ -66,8 +66,9 @@ public class PlayerMovement : MonoBehaviour {
         }
         
         UpdateMomentum();
-        
-        mMove = transform.right * (mMoveVals.x * mMomentum.x) + transform.forward * (mMoveVals.y * mMomentum.y);
+
+        var transform1 = transform;
+        mMove = transform1.right * (mMoveVals.x * mMomentum.x) + transform1.forward * (mMoveVals.y * mMomentum.y);
         
         UpdateGravity();
 
@@ -88,18 +89,17 @@ public class PlayerMovement : MonoBehaviour {
     }
 
     private void UpdateMomentum() {
-        if (mWindDown[0] && mMomentum.x != 0f) {
-            mMomentum.x = Mathf.SmoothDamp(mMomentum.x, 0f, ref mMomentumVel.x, momentumStopTime);
-        } else if (!mWindDown[0] && mMomentum.x <= 1f) {
-            mMomentum.x = Mathf.SmoothDamp(mMomentum.x, 1f, ref mMomentumVel.x, momentumStartTime);
-        }
-        
-        if (mWindDown[1] && mMomentum.y != 0f) {
-            mMomentum.y = Mathf.SmoothDamp(mMomentum.y, 0f, ref mMomentumVel.y, momentumStopTime);
-        } else if (!mWindDown[1] && mMomentum.y <= 1f) {
-            mMomentum.y = Mathf.SmoothDamp(mMomentum.y, 1f, ref mMomentumVel.y, momentumStartTime);
-        }
-        
+        mMomentum.x = mWindDown[0] switch {
+            true when mMomentum.x != 0f => Mathf.SmoothDamp(mMomentum.x, 0f, ref mMomentumVel.x, momentumStopTime),
+            false when mMomentum.x <= 1f => Mathf.SmoothDamp(mMomentum.x, 1f, ref mMomentumVel.x, momentumStartTime),
+            _ => mMomentum.x
+        };
+
+        mMomentum.y = mWindDown[1] switch {
+            true when mMomentum.y != 0f => Mathf.SmoothDamp(mMomentum.y, 0f, ref mMomentumVel.y, momentumStopTime),
+            false when mMomentum.y <= 1f => Mathf.SmoothDamp(mMomentum.y, 1f, ref mMomentumVel.y, momentumStartTime),
+            _ => mMomentum.y
+        };
     }
 
     private void OnJump(InputAction.CallbackContext ctx) {
