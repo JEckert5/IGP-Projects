@@ -323,6 +323,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerPrefab
       objectReference: {fileID: 0}
+    - target: {fileID: 4371867537092148663, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 4424060849788983410, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
       propertyPath: momentumTime
       value: 0.3
@@ -432,7 +436,7 @@ BoxCollider:
   m_ProvidesContacts: 1
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.1, y: 1.1, z: 1.1}
+  m_Size: {x: 1.05, y: 1.05, z: 1.05}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1624595771
 MeshRenderer:
