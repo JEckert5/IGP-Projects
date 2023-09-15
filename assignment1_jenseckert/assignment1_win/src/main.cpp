@@ -18,93 +18,6 @@ const int Height = 1000;
 
 using namespace sf;
 
-// Very bad stupid "Video" player class
-class Video final : public Entity {
-public:
-	Video(){
-        name = "Video";
-
-        playing = false;
-        accumulator = 0.0f;
-        frame = 0;
-        fps = 0;
-    }
-
-	/**
-	 * \brief Load all necessary images. Images NEED to be in format 'output-XXXX.png'.
-	 * \param frameFolder Path to folder containing images/frames
-     * \param audioPath path to audio file
-	 */
-	void install(const std::string& frameFolder, const int numFrames, const float fps, const std::string& audioPath) {
-        this->fps = 1 / fps;
-        audio.openFromFile(audioPath);
-
-        for (int i = 1; i <= numFrames; i++) {
-            std::string file;
-
-            if (i < 10) {
-                file = "/output-000";
-            } else if (i < 100) {
-                file = "/output-00";
-            } else if (i < 1000) {
-                file = "/output-0";
-            } else {
-                file = "/output-";
-            }
-
-            Texture t;
-            t.loadFromFile(frameFolder + file + std::to_string(i) + ".png");
-
-            mFrames.emplace_back(t);
-        }
-    }
-
-	void tick() override {
-        if (!playing)
-            return;
-
-        accumulator += DeltaTime;
-
-        if (accumulator >= fps) {
-            accumulator = 0;
-            frame += 1;
-            if (!(frame >= mFrames.size())) {
-                anim.sprite.setTexture(mFrames[frame]);
-            } else {
-                stop();
-            }
-        }
-    }
-
-	void start() {
-        audio.play();
-        playing = true;
-        frame = 0;
-        anim.sprite.setTexture(mFrames[frame]);
-    }
-
-	void stop() {
-        audio.stop();
-        playing = false;
-        frame = 0;
-        accumulator = 0;
-    }
-
-    bool isPlaying() const {
-        return playing;
-    }
-
-    void draw(RenderWindow& window) override {
-        window.draw(anim.sprite);
-    }
-private:
-    bool playing;
-    std::vector<Texture> mFrames;
-    Music audio;
-    int frame;
-    float fps, accumulator;
-};
-
 int main() {
     std::random_device r;
     m.seed(r());
@@ -161,7 +74,6 @@ int main() {
     entities.push_back(enemy);
 
     Clock clock;
-    auto touhou = new Video;
     music.play();
 
     while (window.isOpen()) {
@@ -174,12 +86,6 @@ int main() {
                 window.close();
 
         if (!Paused) {
-            if (Keyboard::isKeyPressed(Keyboard::F) && !touhou->isPlaying()) {
-                touhou->install("images/touhou", 6572, 30.0003f, "audio/badapple.wav");
-                entities.push_back(touhou);
-                touhou->start();
-            }
-
             if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire() && !player->markedForNegation) {
                 auto nb = new Bullet(ba, player->pos, 10, 850, player);
                 nb->config(Bullet::SchlerpType::NONE, player->bulletFunc);
