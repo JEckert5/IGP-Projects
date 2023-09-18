@@ -13,15 +13,15 @@ float lerp(float a, float b, float t) {
     return a + t * (b - a);
 }
 
-const int Width = 1000;
-const int Height = 1000;
+constexpr int Width = 1000;
+constexpr int Height = 1000;
 
 using namespace sf;
 
 int main() {
     std::random_device r;
     m.seed(r());
-    bool Paused = false;
+    bool paused = false;
 
     Music music;
     music.openFromFile("audio/jojo.wav");
@@ -85,7 +85,7 @@ int main() {
             if (ev.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
                 window.close();
 
-        if (!Paused) {
+        if (!paused) {
             if (Keyboard::isKeyPressed(Keyboard::Space) && player->readyToFire() && !player->markedForNegation) {
                 auto nb = new Bullet(ba, player->pos, 10, 850, player);
                 nb->config(Bullet::SchlerpType::NONE, player->bulletFunc);
@@ -108,7 +108,7 @@ int main() {
                     a->collision(b);
         } else { // is Paused
 	        if (Mouse::isButtonPressed(Mouse::Left)) { // restart
-                Paused = false;
+                paused = false;
 
                 player->reset();
                 enemy->reset();
@@ -124,11 +124,11 @@ int main() {
         if (player->markedForNegation) {
             dioHealth.setString("Game Over!\nClick to retry");
             dioHealth.setPosition(Width / 3, Height / 2);
-            Paused = true;
+            paused = true;
         } else if (enemy->markedForNegation) {
             dioHealth.setString("You Won!\nClick to restart");
             dioHealth.setPosition(Width / 3, Height / 2);
-            Paused = true;
+            paused = true;
         } else {
             dioHealth.setString("Dio: " + std::to_string(enemy->health));
             playerHealth.setString("Health: " + std::to_string(player->health));

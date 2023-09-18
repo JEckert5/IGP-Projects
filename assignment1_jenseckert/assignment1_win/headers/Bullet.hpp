@@ -5,7 +5,7 @@
 #include "Player.hpp"
 
 const Vector2f BulletScale(0.6f, 0.6f);
-const float BulletRadius = 10.f;
+constexpr float BulletRadius = 10.f;
 
 class Bullet: public Entity {
 public:
@@ -22,12 +22,12 @@ public:
            Entity* s, 
            float radius = BulletRadius);
 
+    // Shadows on purpose. There's certainly a better way but I don't care rn.
     void config(SchlerpType st, std::function<Vector2f(Vector2f, float, float, bool)> func);
 
     void tick() override;
 
     bool collision(Entity* other) override;
-
 
 private:
     std::function<Vector2f(Vector2f, float, float, bool)> interpFunc;

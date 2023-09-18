@@ -3,7 +3,7 @@
 // extern float DeltaTime;
 // extern std::mt19937 m;
 
-Dio::Dio(Animation& a, const int& h, std::list<Entity*>* ptr): Player(a), help(ptr) {
+Dio::Dio(Animation& a, const int& h, std::list<Entity*>* ptr): Player(a), entityPtr(ptr) {
     scale.x = 0.3f;
     scale.y = 0.3f;
     anim.sprite.setScale(scale);
@@ -12,8 +12,8 @@ Dio::Dio(Animation& a, const int& h, std::list<Entity*>* ptr): Player(a), help(p
 }
 
 Dio::~Dio() {
-    help = nullptr;
-    delete help;
+    entityPtr = nullptr;
+    delete entityPtr;
 }
 
 void Dio::tick() {
@@ -92,7 +92,7 @@ void Dio::patternOne() {
             return v2;
         });
 
-        help->push_back(db);
+        entityPtr->push_back(db);
         db = nullptr;
 
         db = new Bullet(bulletAnim, pos, DioBulletDmg, DioBulletVel, this);
@@ -103,7 +103,7 @@ void Dio::patternOne() {
         });
 
         db->anim.sprite.setRotation(135);
-        help->push_back(db);
+        entityPtr->push_back(db);
         db = nullptr;
 
         db = new Bullet(bulletAnim, pos, DioBulletDmg, DioBulletVel, this);
@@ -113,7 +113,7 @@ void Dio::patternOne() {
             return v2;
         });
         db->anim.sprite.setRotation(225);
-        help->push_back(db);
+        entityPtr->push_back(db);
         db = nullptr;
 
         delete db;
@@ -130,23 +130,28 @@ void Dio::patternTwo() {
         auto center = new Entity;
 
         center->pos = pos;
-        center->setTick([center]() {
+        center->setTick([center] {
             center->pos.y += DeltaTime * DioBulletVel;
         });
 
-        help->push_back(center);
+        entityPtr->push_back(center);
 
         for (int i = 0; i < 9; i++) {
             auto db = new Bullet(bulletAnim, pos, DioBulletDmg, 0, this);
             db->config(Bullet::SchlerpType::INF, [center, i](Vector2f v2, float t, float v, bool d) {
+                // Calculate angle of current projectile.
                 const auto angle = static_cast<float>(i * 40) + t;
+                // Distance from center.
                 const float dist = t * 50;
+                // Don't need DeltaTime as it's already in centers tick function.
+                // https://stackoverflow.com/questions/43641798/how-to-find-x-and-y-coordinates-on-a-flipped-circle-using-javascript-methods
+                // I may be stupid.
                 v2.x = center->pos.x + dist * cosf(angle); //* DeltaTime;
                 v2.y = center->pos.y + dist * sinf(angle); //* DeltaTime;
                 return v2;
             });
 
-            help->push_back(db);
+            entityPtr->push_back(db);
             db = nullptr;
         }
 
@@ -155,29 +160,25 @@ void Dio::patternTwo() {
     }
 }
 
-/**
- * \brief Sin wave.
- */
 void Dio::patternThree() {
     pulseTimer -= DeltaTime;
 
     if (pulseTimer <= 0.f) {
     	auto db = new Bullet(bulletAnim, pos, DioBulletDmg, DioBulletVel, this);
         db->config(Bullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) {
+            // if interpolation direction (d) is true we go up, if not down.
             v2.x += (d ? lerp(0, 200, t) : -lerp(0, 200, t)) * DeltaTime;
             v2.y += v * DeltaTime;
             return v2;
         });
 
-        help->push_back(db);
+        entityPtr->push_back(db);
 
         pulseTimer = 0.1f;
         pulseCounter += 1;
     }
 }
-/**
- * \brief Rain
- */
+
 void Dio::patternFour() {
     // << "Woah4\n" << std::flush;
     pulseTimer -= DeltaTime;
@@ -185,12 +186,11 @@ void Dio::patternFour() {
     if (pulseTimer <= 0.f) {
 	    auto db = new Bullet(bulletAnim, pos, DioBulletDmg, DioBulletVel, this);
         db->config(Bullet::SchlerpType::LERP, [](Vector2f v2, float t, float v, bool d) { 
-            v2.x += 0;
             v2.y += (d ? lerp(0, 300, t) : -lerp(0, 100, t)) * DeltaTime;
             return v2;
         });
 
-        help->push_back(db);
+        entityPtr->push_back(db);
 
         pulseTimer = 0.185f;
         pulseCounter += 1;

@@ -47,7 +47,7 @@ private:
     float moveTimer = 0;
     // 1 = right, -1 = left;
     int moveDir = 1;
-    std::list<Entity*>* help;
+    std::list<Entity*>* entityPtr;
     Animation bulletAnim;
     bool firing = false;
     float pulseTimer = 0.f;
