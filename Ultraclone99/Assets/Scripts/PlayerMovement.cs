@@ -29,7 +29,6 @@ public class PlayerMovement : MonoBehaviour {
     public CharacterController playerCharacterController;
     private PlayerFPSControls mFPSActions;
     
-    // Start is called before the first frame update
     private void Start() {
         mMove        = Vector3.zero;
         mVelocity    = 0f;
@@ -71,9 +70,6 @@ public class PlayerMovement : MonoBehaviour {
         mMove = transform1.right * (mMoveVals.x * mMomentum.x) + transform1.forward * (mMoveVals.y * mMomentum.y);
         
         UpdateGravity();
-
-        // mMove.x *= mMomentum.x;
-        // mMove.z *= mMomentum.y;
         
         playerCharacterController.Move(mMove * (movementSpeed * Time.deltaTime));
     }

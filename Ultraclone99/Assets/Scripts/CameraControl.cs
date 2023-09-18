@@ -29,7 +29,7 @@ public class CameraControl : MonoBehaviour {
         var mouseY = mouseVals.y * sensitivity * Time.deltaTime;
 
         mXRotation -= mouseY;
-        mXRotation =  Mathf.Clamp(mXRotation, -mMaxXRot, mMaxXRot);
+        mXRotation = Mathf.Clamp(mXRotation, -mMaxXRot, mMaxXRot);
 
         playerCamera.transform.localRotation = Quaternion.Euler(mXRotation, 0f, 0f); 
         transform.Rotate(Vector3.up * mouseX);
