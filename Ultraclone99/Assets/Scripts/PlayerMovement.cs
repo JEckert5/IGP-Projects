@@ -65,6 +65,8 @@ public class PlayerMovement : MonoBehaviour {
         }
         
         UpdateMomentum();
+        
+        // Debug.Log(mMomentum);
 
         var transform1 = transform;
         mMove = transform1.right * (mMoveVals.x * mMomentum.x) + transform1.forward * (mMoveVals.y * mMomentum.y);

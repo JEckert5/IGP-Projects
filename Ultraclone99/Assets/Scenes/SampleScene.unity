@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657815, g: 0.49641192, b: 0.57481617, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -307,6 +307,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &944352100 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8465993737183186333, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+  m_PrefabInstance: {fileID: 1584526779}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &944352105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 944352100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b507eb4d67104b48be53c2c45f85967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1584526779
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -318,6 +335,10 @@ PrefabInstance:
     - target: {fileID: 350287540079051995, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
       propertyPath: sensitivity
       value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 944950055340186451, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      propertyPath: momentumStopTime
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 2288892581568567939, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
       propertyPath: m_IsTrigger
@@ -400,7 +421,10 @@ PrefabInstance:
     - {fileID: 5153437179670736825, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8465993737183186333, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 944352105}
   m_SourcePrefab: {fileID: 100100000, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
 --- !u!1 &1624595769
 GameObject:

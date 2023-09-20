@@ -62,7 +62,8 @@ Transform:
   m_LocalPosition: {x: -0.018018067, y: 0.90121746, z: 0.17791843}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5080531458773753580}
   m_Father: {fileID: 1372744839462820918}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &126321002666178944
@@ -139,7 +140,7 @@ GameObject:
   - component: {fileID: 8734442714332946723}
   - component: {fileID: 350287540079051995}
   - component: {fileID: 944950055340186451}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -160,7 +161,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 47993990361653654}
-  - {fileID: 5080531458773753580}
   m_Father: {fileID: 7942475677571407663}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6731481384802679930
@@ -308,6 +308,7 @@ GameObject:
   - component: {fileID: 4109997020251686554}
   - component: {fileID: 8047321545113348136}
   - component: {fileID: 9011060934893453760}
+  - component: {fileID: 8084816777678313465}
   m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
@@ -324,11 +325,11 @@ Transform:
   m_GameObject: {fileID: 8465993737183186333}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.58198196, y: 0.55121756, z: 0.734}
+  m_LocalPosition: {x: 0.6, y: -0.35000002, z: 0.5560816}
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1372744839462820918}
+  m_Father: {fileID: 47993990361653654}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4109997020251686554
 MeshFilter:
@@ -401,3 +402,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8084816777678313465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8465993737183186333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b507eb4d67104b48be53c2c45f85967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

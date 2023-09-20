@@ -160,17 +160,6 @@
                 },
                 {
                     "name": "",
-                    "id": "59b38bc4-b119-4862-a59f-a5776b76d163",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "fire",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "c6b5c9a7-d337-48a2-b052-0ba79b6f99b7",
                     "path": "<Mouse>/rightButton",
                     "interactions": "",
@@ -188,6 +177,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "crouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9c7596a6-3aa8-4f5a-b34a-a1627d2c71ca",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "fire",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
