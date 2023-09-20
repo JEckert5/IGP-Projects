@@ -5,5 +5,4 @@
 settings.json
 main
 .vscode
-
-
+*.zip
