@@ -6,3 +6,5 @@ settings.json
 main
 .vscode
 *.zip
+*.7z
+SpritesExample/
