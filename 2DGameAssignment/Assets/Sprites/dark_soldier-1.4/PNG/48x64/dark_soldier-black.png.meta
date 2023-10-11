@@ -1,0 +1,412 @@
+fileFormatVersion: 2
+guid: b0eed0c4db1c94bff81e8abf7959ff54
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1112434410700170899
+    second: dark_soldier-black_0
+  - first:
+      213: 5079924756074498289
+    second: dark_soldier-black_1
+  - first:
+      213: 3705395020153663777
+    second: dark_soldier-black_2
+  - first:
+      213: 6364261482213757407
+    second: dark_soldier-black_3
+  - first:
+      213: 8867181792015214995
+    second: dark_soldier-black_4
+  - first:
+      213: -4352107216190949359
+    second: dark_soldier-black_5
+  - first:
+      213: 4740629678267345748
+    second: dark_soldier-black_6
+  - first:
+      213: 7993785539806429464
+    second: dark_soldier-black_7
+  - first:
+      213: 8759120904412385120
+    second: dark_soldier-black_8
+  - first:
+      213: -3765170690429680455
+    second: dark_soldier-black_9
+  - first:
+      213: 7145353894765472969
+    second: dark_soldier-black_10
+  - first:
+      213: 6308834150544939616
+    second: dark_soldier-black_11
+  externalObjects: {}
+  serializedVersion: 12
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: dark_soldier-black_0
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 191
+        width: 34
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d699b422cc6df80f0800000000000000
+      internalID: -1112434410700170899
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_1
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 194
+        width: 35
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f8888ba6a48f7640800000000000000
+      internalID: 5079924756074498289
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_2
+      rect:
+        serializedVersion: 2
+        x: 102
+        y: 191
+        width: 34
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 121b2c883253c6330800000000000000
+      internalID: 3705395020153663777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_3
+      rect:
+        serializedVersion: 2
+        x: 6
+        y: 129
+        width: 37
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd15d094916625850800000000000000
+      internalID: 6364261482213757407
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_4
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 130
+        width: 18
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 399e0e70cde8e0b70800000000000000
+      internalID: 8867181792015214995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_5
+      rect:
+        serializedVersion: 2
+        x: 105
+        y: 129
+        width: 34
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 118368a9b853a93c0800000000000000
+      internalID: -4352107216190949359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_6
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 63
+        width: 33
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 45bacc053991ac140800000000000000
+      internalID: 4740629678267345748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_7
+      rect:
+        serializedVersion: 2
+        x: 54
+        y: 66
+        width: 35
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 81101d67891afee60800000000000000
+      internalID: 7993785539806429464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_8
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 63
+        width: 33
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06fc2340e06ae8970800000000000000
+      internalID: 8759120904412385120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_9
+      rect:
+        serializedVersion: 2
+        x: 5
+        y: 1
+        width: 34
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9b40a3ea43d6fbbc0800000000000000
+      internalID: -3765170690429680455
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_10
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 2
+        width: 18
+        height: 59
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9cc23f37285692360800000000000000
+      internalID: 7145353894765472969
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dark_soldier-black_11
+      rect:
+        serializedVersion: 2
+        x: 101
+        y: 1
+        width: 37
+        height: 58
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06a951afb3b7d8750800000000000000
+      internalID: 6308834150544939616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      dark_soldier-black_0: -1112434410700170899
+      dark_soldier-black_1: 5079924756074498289
+      dark_soldier-black_10: 7145353894765472969
+      dark_soldier-black_11: 6308834150544939616
+      dark_soldier-black_2: 3705395020153663777
+      dark_soldier-black_3: 6364261482213757407
+      dark_soldier-black_4: 8867181792015214995
+      dark_soldier-black_5: -4352107216190949359
+      dark_soldier-black_6: 4740629678267345748
+      dark_soldier-black_7: 7993785539806429464
+      dark_soldier-black_8: 8759120904412385120
+      dark_soldier-black_9: -3765170690429680455
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
