@@ -6,5 +6,6 @@ settings.json
 main
 .vscode
 *.zip
+*.zip.meta
 *.7z
 SpritesExample/
