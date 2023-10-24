@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 47993990361653654}
   - component: {fileID: 126321002666178944}
   - component: {fileID: 1151426236512329975}
+  - component: {fileID: 7390443021774224573}
   m_Layer: 0
   m_Name: Player Camera
   m_TagString: Untagged
@@ -125,6 +126,18 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5110947100022277405}
   m_Enabled: 1
+--- !u!114 &7390443021774224573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5110947100022277405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b507eb4d67104b48be53c2c45f85967, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7284142095320301559
 GameObject:
   m_ObjectHideFlags: 0
@@ -308,7 +321,6 @@ GameObject:
   - component: {fileID: 4109997020251686554}
   - component: {fileID: 8047321545113348136}
   - component: {fileID: 9011060934893453760}
-  - component: {fileID: 8084816777678313465}
   m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
@@ -402,15 +414,3 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8084816777678313465
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8465993737183186333}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b507eb4d67104b48be53c2c45f85967, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
