@@ -33,6 +33,13 @@ public class GunBehavior : MonoBehaviour {
         if (Physics.Raycast(transform.position, transform.forward, out hit)) {
             Debug.DrawRay(transform.position, transform.forward * hit.distance, Color.green, 3);
             Debug.Log("hit");
+
+            if (hit.collider.tag == "Enemy") {
+                Debug.Log("SEX");
+
+                var temp = hit.collider.gameObject.GetComponent<GunkyLadBehavior>();
+                temp.health -= 10;
+            }
         } else {
             Debug.DrawRay(transform.position, transform.forward * 1000, Color.red, 3);
             Debug.Log("no hit");
