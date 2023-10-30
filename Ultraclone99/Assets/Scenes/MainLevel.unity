@@ -418,13 +418,29 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerPrefab
       objectReference: {fileID: 0}
+    - target: {fileID: 4371867537092148663, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 7284142095320301559, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 7390443021774224573, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      propertyPath: ammoText
+      value: 
+      objectReference: {fileID: 2017303191}
+    - target: {fileID: 7390443021774224573, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+      propertyPath: gunTransform
+      value: 
+      objectReference: {fileID: 1536068705}
     - target: {fileID: 7942475677571407663, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 244.5185
+      value: 252.5
       objectReference: {fileID: 0}
     - target: {fileID: 7942475677571407663, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.321
+      value: 2.14
       objectReference: {fileID: 0}
     - target: {fileID: 7942475677571407663, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -922,7 +938,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh-17806
+  m_Name: pb_Mesh30030
   serializedVersion: 11
   m_SubMeshes:
   - serializedVersion: 2
@@ -1081,6 +1097,11 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!4 &1536068705 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5080531458773753580, guid: dd7ce9bc2bf75405c95ce2274a7b3a6a, type: 3}
+  m_PrefabInstance: {fileID: 637690281}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1537269520
 GameObject:
   m_ObjectHideFlags: 0
@@ -1184,6 +1205,50 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1574052978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1574052980}
+  - component: {fileID: 1574052979}
+  m_Layer: 0
+  m_Name: Spawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1574052979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574052978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdc5a609be977be419db7096977cf4ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1574052980
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1574052978}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 267.87, y: 1.66, z: 187.1072}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1624595769
 GameObject:
   m_ObjectHideFlags: 0
@@ -1669,8 +1734,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -60.501465, y: 22.319519}
-  m_SizeDelta: {x: 121.5029, y: 45.639}
+  m_AnchoredPosition: {x: -105.38, y: 21.6491}
+  m_SizeDelta: {x: 210.75, y: 43.2991}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2017303191
 MonoBehaviour:
@@ -1692,7 +1757,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: BALLS
+  m_text: AmmoCount
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1726,7 +1791,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1783,3 +1848,4 @@ SceneRoots:
   - {fileID: 402488541}
   - {fileID: 422344196}
   - {fileID: 1642820648}
+  - {fileID: 1574052980}

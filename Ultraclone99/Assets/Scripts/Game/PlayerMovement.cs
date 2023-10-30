@@ -42,8 +42,8 @@ public class PlayerMovement : MonoBehaviour {
         mFPSActions.Gameplay.jump.performed   += OnJump;
         mFPSActions.Gameplay.sprint.started   += OnSprintPress;
         mFPSActions.Gameplay.sprint.performed += OnSprintRelease;
-        mFPSActions.Gameplay.crouch.started   += OnCrouchPress;
-        mFPSActions.Gameplay.crouch.performed += OnCrouchRelease;
+        //mFPSActions.Gameplay.crouch.started   += OnCrouchPress;
+        //mFPSActions.Gameplay.crouch.performed += OnCrouchRelease;
     }
 
     // Update is called once per frame

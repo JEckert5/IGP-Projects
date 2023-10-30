@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GunkyLadBehavior: MonoBehaviour {
 
@@ -21,7 +22,12 @@ public class GunkyLadBehavior: MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        mAgent.destination = destination.position;
+        var objs = GameObject.FindGameObjectsWithTag("Player");
+        
+        if (objs.Length != 1)
+            Debug.Log("FUCK");
+
+        mAgent.destination = objs[0].transform.position;
 
         if (health <= 0) {
             DestroyImmediate(this);

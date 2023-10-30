@@ -51,21 +51,12 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "alt-fire",
+                    "name": "reload",
                     "type": "Button",
-                    "id": "27b5ec25-325d-4aba-ad9e-94e8438196fe",
+                    "id": "4574623e-6f7f-4c98-abb3-70d3a527afda",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "crouch",
-                    "type": "Button",
-                    "id": "ad23b1fb-fce9-462a-942e-f6926fa377fe",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "Press(pressPoint=0.01,behavior=1)",
                     "initialStateCheck": false
                 }
             ],
@@ -160,34 +151,23 @@
                 },
                 {
                     "name": "",
-                    "id": "c6b5c9a7-d337-48a2-b052-0ba79b6f99b7",
-                    "path": "<Mouse>/rightButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "alt-fire",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "1365bec7-7fb9-4809-a747-7010930bc2a1",
-                    "path": "<Keyboard>/ctrl",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "crouch",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "9c7596a6-3aa8-4f5a-b34a-a1627d2c71ca",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "fire",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "93f2cec0-dd3f-4ef1-8fed-e42680ad3903",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "reload",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

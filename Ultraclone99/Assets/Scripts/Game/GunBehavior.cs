@@ -3,49 +3,85 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class GunBehavior : MonoBehaviour {
 
     private PlayerFPSControls mFPSControls;
-    private RaycastHit hit;
+
+    public TextMeshProUGUI ammoText;
+
+    private int mAmmoCount;
+    private const int mMaxAmmo = 15;
+
+    private bool reloading;
+    public Transform gunTransform;
+    
     // Hit scan
-    // Start is called before the first frame update
     private void Start() {
-        
+        mAmmoCount = mMaxAmmo;
+        ammoText.text = mAmmoCount.ToString();
+        reloading = false;
     }
 
     private void Awake() {
         mFPSControls                       =  new PlayerFPSControls();
         mFPSControls.Gameplay.fire.started += OnFire;
+        mFPSControls.Gameplay.reload.started += OnReload;
     }
-
-    // Update is called once per frame
+    
     private void Update() {
-        // Debug.DrawRay(transform.position, transform.TransformDirection(transform.forward) * 1000, Color.red, 3);
+        
     }
 
     private void OnFire(InputAction.CallbackContext ctx) {
-        // RaycastHit hit;
-        
-        Debug.Log(transform.forward);
-        Debug.Log(transform.TransformDirection(transform.forward));
+        if (mAmmoCount <= 0 || reloading) return;
 
-        if (Physics.Raycast(transform.position, transform.forward, out hit)) {
-            Debug.DrawRay(transform.position, transform.forward * hit.distance, Color.green, 3);
+        mAmmoCount -= 1;
+
+        ammoText.text = mAmmoCount.ToString();
+
+        if (Physics.Raycast(transform.position, transform.forward, out var hit)) {
+
+            var prev = new Vector3(gunTransform.position.x, gunTransform.position.y, gunTransform.position.z);
+            // Debug.Log(prev);
+            gunTransform.LookAt(hit.point);
+            
+            Debug.DrawRay(gunTransform.position, gunTransform.forward * hit.distance, Color.green, 3);
             Debug.Log("hit");
+            
+            // Debug.Log(prev);
 
-            if (hit.collider.tag == "Enemy") {
-                Debug.Log("SEX");
+            gunTransform.position = prev;
 
-                var temp = hit.collider.gameObject.GetComponent<GunkyLadBehavior>();
-                temp.health -= 10;
-            }
+            if (!hit.collider.CompareTag("Enemy")) return;
+
+            var temp = hit.collider.gameObject.GetComponent<GunkyLadBehavior>();
+            temp.health -= 10;
+            
+            
         } else {
-            Debug.DrawRay(transform.position, transform.forward * 1000, Color.red, 3);
+            Debug.DrawRay(gunTransform.position, gunTransform.forward * 1000, Color.red, 3);
             Debug.Log("no hit");
         }
+    }
+
+    private void OnReload(InputAction.CallbackContext ctx) {
+        // Debug.Log("Reloading...");
+        ammoText.text = "Reloading...";
+        mAmmoCount = mMaxAmmo;
+        reloading = true;
+
+        StartCoroutine(WaitForReload());
+    }
+
+    private IEnumerator WaitForReload() {
+        yield return new WaitForSeconds(0.64f);
         
-        // Debug.DrawRay(transform.position, transform.TransformDirection(transform.forward) * 1000, Color.blue, 3);
+        Debug.Log("Done reloading");
+
+        reloading = false;
+        ammoText.text = mAmmoCount.ToString();
     }
 
     private void OnEnable() {

@@ -73,21 +73,12 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""alt-fire"",
+                    ""name"": ""reload"",
                     ""type"": ""Button"",
-                    ""id"": ""27b5ec25-325d-4aba-ad9e-94e8438196fe"",
+                    ""id"": ""4574623e-6f7f-4c98-abb3-70d3a527afda"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""crouch"",
-                    ""type"": ""Button"",
-                    ""id"": ""ad23b1fb-fce9-462a-942e-f6926fa377fe"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": ""Press(pressPoint=0.01,behavior=1)"",
                     ""initialStateCheck"": false
                 }
             ],
@@ -182,7 +173,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""59b38bc4-b119-4862-a59f-a5776b76d163"",
+                    ""id"": ""9c7596a6-3aa8-4f5a-b34a-a1627d2c71ca"",
                     ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -193,23 +184,12 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""c6b5c9a7-d337-48a2-b052-0ba79b6f99b7"",
-                    ""path"": ""<Mouse>/rightButton"",
+                    ""id"": ""93f2cec0-dd3f-4ef1-8fed-e42680ad3903"",
+                    ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""alt-fire"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""1365bec7-7fb9-4809-a747-7010930bc2a1"",
-                    ""path"": ""<Keyboard>/ctrl"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""crouch"",
+                    ""action"": ""reload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -253,8 +233,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
         m_Gameplay_look = m_Gameplay.FindAction("look", throwIfNotFound: true);
         m_Gameplay_sprint = m_Gameplay.FindAction("sprint", throwIfNotFound: true);
         m_Gameplay_fire = m_Gameplay.FindAction("fire", throwIfNotFound: true);
-        m_Gameplay_altfire = m_Gameplay.FindAction("alt-fire", throwIfNotFound: true);
-        m_Gameplay_crouch = m_Gameplay.FindAction("crouch", throwIfNotFound: true);
+        m_Gameplay_reload = m_Gameplay.FindAction("reload", throwIfNotFound: true);
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_Newaction = m_Menu.FindAction("New action", throwIfNotFound: true);
@@ -324,8 +303,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_look;
     private readonly InputAction m_Gameplay_sprint;
     private readonly InputAction m_Gameplay_fire;
-    private readonly InputAction m_Gameplay_altfire;
-    private readonly InputAction m_Gameplay_crouch;
+    private readonly InputAction m_Gameplay_reload;
     public struct GameplayActions
     {
         private @PlayerFPSControls m_Wrapper;
@@ -335,8 +313,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
         public InputAction @look => m_Wrapper.m_Gameplay_look;
         public InputAction @sprint => m_Wrapper.m_Gameplay_sprint;
         public InputAction @fire => m_Wrapper.m_Gameplay_fire;
-        public InputAction @altfire => m_Wrapper.m_Gameplay_altfire;
-        public InputAction @crouch => m_Wrapper.m_Gameplay_crouch;
+        public InputAction @reload => m_Wrapper.m_Gameplay_reload;
         public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -361,12 +338,9 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
             @fire.started += instance.OnFire;
             @fire.performed += instance.OnFire;
             @fire.canceled += instance.OnFire;
-            @altfire.started += instance.OnAltfire;
-            @altfire.performed += instance.OnAltfire;
-            @altfire.canceled += instance.OnAltfire;
-            @crouch.started += instance.OnCrouch;
-            @crouch.performed += instance.OnCrouch;
-            @crouch.canceled += instance.OnCrouch;
+            @reload.started += instance.OnReload;
+            @reload.performed += instance.OnReload;
+            @reload.canceled += instance.OnReload;
         }
 
         private void UnregisterCallbacks(IGameplayActions instance)
@@ -386,12 +360,9 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
             @fire.started -= instance.OnFire;
             @fire.performed -= instance.OnFire;
             @fire.canceled -= instance.OnFire;
-            @altfire.started -= instance.OnAltfire;
-            @altfire.performed -= instance.OnAltfire;
-            @altfire.canceled -= instance.OnAltfire;
-            @crouch.started -= instance.OnCrouch;
-            @crouch.performed -= instance.OnCrouch;
-            @crouch.canceled -= instance.OnCrouch;
+            @reload.started -= instance.OnReload;
+            @reload.performed -= instance.OnReload;
+            @reload.canceled -= instance.OnReload;
         }
 
         public void RemoveCallbacks(IGameplayActions instance)
@@ -462,8 +433,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
         void OnLook(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
         void OnFire(InputAction.CallbackContext context);
-        void OnAltfire(InputAction.CallbackContext context);
-        void OnCrouch(InputAction.CallbackContext context);
+        void OnReload(InputAction.CallbackContext context);
     }
     public interface IMenuActions
     {
