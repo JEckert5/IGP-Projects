@@ -43,7 +43,8 @@ public class GunBehavior : MonoBehaviour {
 
         if (Physics.Raycast(transform.position, transform.forward, out var hit)) {
 
-            var prev = new Vector3(gunTransform.position.x, gunTransform.position.y, gunTransform.position.z);
+            var prevPos = new Vector3(gunTransform.position.x, gunTransform.position.y, gunTransform.position.z);
+            var prevRot = new Quaternion(gunTransform.rotation.x, gunTransform.rotation.y, gunTransform.rotation.z, gunTransform.rotation.w);
             // Debug.Log(prev);
             gunTransform.LookAt(hit.point);
             
@@ -52,12 +53,20 @@ public class GunBehavior : MonoBehaviour {
             
             // Debug.Log(prev);
 
-            gunTransform.position = prev;
+            gunTransform.position = prevPos;
+            gunTransform.rotation = prevRot;
 
             if (!hit.collider.CompareTag("Enemy")) return;
 
             var temp = hit.collider.gameObject.GetComponent<GunkyLadBehavior>();
-            temp.health -= 10;
+
+            if (temp == null) {
+                Debug.Log("Why");
+
+                return;
+            }
+            
+            temp.DoDamage(10);
             
             
         } else {

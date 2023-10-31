@@ -10,6 +10,9 @@ public class GunkyLadBehavior: MonoBehaviour {
     private NavMeshAgent mAgent;
     public Transform destination;
 
+
+    private bool mShouldBeDestroyed = false;
+
     public int health;
 
     public TextMeshProUGUI healthText;
@@ -17,22 +20,33 @@ public class GunkyLadBehavior: MonoBehaviour {
     // Start is called before the first frame update
     void Start() {
         mAgent = GetComponent<NavMeshAgent>();
-        mAgent.destination = destination.position;
+        // mAgent.destination = destination.position;
+
+        var t = GameObject.FindGameObjectWithTag("Player");
+
+        if (t == null) return;
+
+        destination = t.transform;
     }
 
     // Update is called once per frame
     void Update() {
-        var objs = GameObject.FindGameObjectsWithTag("Player");
-        
-        if (objs.Length != 1)
-            Debug.Log("FUCK");
-
-        mAgent.destination = objs[0].transform.position;
+        mAgent.destination = destination.position;
 
         if (health <= 0) {
-            DestroyImmediate(this);
+            mShouldBeDestroyed = true;
         }
-
+        
+        //Debug.Log(health);
         healthText.text = health.ToString();
+    }
+
+    public void DoDamage(int dmg) {
+        this.health -= dmg;
+        // Debug.Log(health);
+    }
+
+    public bool ShouldBeDestroyed() {
+        return mShouldBeDestroyed;
     }
 }

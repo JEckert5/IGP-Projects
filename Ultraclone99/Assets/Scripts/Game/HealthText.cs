@@ -7,16 +7,18 @@ public class HealthText : MonoBehaviour {
     public Transform player;
     
     // Start is called before the first frame update
-    void Start()
-    {
-        
+    void Start() {
+        var t = GameObject.FindGameObjectWithTag("Player");
+
+        player = t.transform;
     }
 
     // Update is called once per frame
     void Update() {
-        // transform.position = poop.position + new Vector3(0, 1, 0);
-        transform.LookAt(player);
+        Transform transform1;
+        (transform1 = transform).LookAt(player);
 
-        transform.forward = -transform.forward;
+        // Flip Text, forward vector is backwards technically
+        transform1.forward = -transform1.forward;
     }
 }
