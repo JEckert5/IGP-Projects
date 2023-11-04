@@ -10,12 +10,11 @@ public class GunkyLadBehavior: MonoBehaviour {
     private NavMeshAgent mAgent;
     public Transform destination;
 
-
-    private bool mShouldBeDestroyed = false;
-
     public int health;
 
     public TextMeshProUGUI healthText;
+
+    private SpawnManager mSpawnManager;
 
     // Start is called before the first frame update
     void Start() {
@@ -34,10 +33,9 @@ public class GunkyLadBehavior: MonoBehaviour {
         mAgent.destination = destination.position;
 
         if (health <= 0) {
-            mShouldBeDestroyed = true;
+            mSpawnManager.KillMe(this);
         }
         
-        //Debug.Log(health);
         healthText.text = health.ToString();
     }
 
@@ -45,8 +43,8 @@ public class GunkyLadBehavior: MonoBehaviour {
         this.health -= dmg;
         // Debug.Log(health);
     }
-
-    public bool ShouldBeDestroyed() {
-        return mShouldBeDestroyed;
+    
+    public void SetSpawnManager(SpawnManager spawnMan) {
+        mSpawnManager = spawnMan;
     }
 }

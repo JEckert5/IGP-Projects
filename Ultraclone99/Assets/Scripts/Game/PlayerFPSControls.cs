@@ -80,6 +80,15 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""590fcc2b-9170-4c28-a967-8b2044ba1bb0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -192,6 +201,17 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
                     ""action"": ""reload"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""433d82a4-8268-4587-b144-01747bec7a74"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -234,6 +254,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
         m_Gameplay_sprint = m_Gameplay.FindAction("sprint", throwIfNotFound: true);
         m_Gameplay_fire = m_Gameplay.FindAction("fire", throwIfNotFound: true);
         m_Gameplay_reload = m_Gameplay.FindAction("reload", throwIfNotFound: true);
+        m_Gameplay_interact = m_Gameplay.FindAction("interact", throwIfNotFound: true);
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_Newaction = m_Menu.FindAction("New action", throwIfNotFound: true);
@@ -304,6 +325,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_sprint;
     private readonly InputAction m_Gameplay_fire;
     private readonly InputAction m_Gameplay_reload;
+    private readonly InputAction m_Gameplay_interact;
     public struct GameplayActions
     {
         private @PlayerFPSControls m_Wrapper;
@@ -314,6 +336,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
         public InputAction @sprint => m_Wrapper.m_Gameplay_sprint;
         public InputAction @fire => m_Wrapper.m_Gameplay_fire;
         public InputAction @reload => m_Wrapper.m_Gameplay_reload;
+        public InputAction @interact => m_Wrapper.m_Gameplay_interact;
         public InputActionMap Get() { return m_Wrapper.m_Gameplay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -341,6 +364,9 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
             @reload.started += instance.OnReload;
             @reload.performed += instance.OnReload;
             @reload.canceled += instance.OnReload;
+            @interact.started += instance.OnInteract;
+            @interact.performed += instance.OnInteract;
+            @interact.canceled += instance.OnInteract;
         }
 
         private void UnregisterCallbacks(IGameplayActions instance)
@@ -363,6 +389,9 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
             @reload.started -= instance.OnReload;
             @reload.performed -= instance.OnReload;
             @reload.canceled -= instance.OnReload;
+            @interact.started -= instance.OnInteract;
+            @interact.performed -= instance.OnInteract;
+            @interact.canceled -= instance.OnInteract;
         }
 
         public void RemoveCallbacks(IGameplayActions instance)
@@ -434,6 +463,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
         void OnSprint(InputAction.CallbackContext context);
         void OnFire(InputAction.CallbackContext context);
         void OnReload(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
     }
     public interface IMenuActions
     {

@@ -4,19 +4,19 @@ using UnityEngine;
 
 public class HealthText : MonoBehaviour {
     
-    public Transform player;
+    private Transform mPlayer;
     
     // Start is called before the first frame update
     void Start() {
         var t = GameObject.FindGameObjectWithTag("Player");
 
-        player = t.transform;
+        mPlayer = t.transform;
     }
 
     // Update is called once per frame
     void Update() {
         Transform transform1;
-        (transform1 = transform).LookAt(player);
+        (transform1 = transform).LookAt(mPlayer);
 
         // Flip Text, forward vector is backwards technically
         transform1.forward = -transform1.forward;

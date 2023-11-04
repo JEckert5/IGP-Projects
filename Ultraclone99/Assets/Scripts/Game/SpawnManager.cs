@@ -5,33 +5,29 @@ using UnityEngine;
 public class SpawnManager : MonoBehaviour {
 
     public GameObject gunkyPrefab;
-
-    private List<GameObject> mSpawnedObjects;
+    
+    private List<GunkyLadBehavior> mLads;
     
     // Start is called before the first frame update
     void Start() {
-        mSpawnedObjects = new List<GameObject>();
+        mLads           = new List<GunkyLadBehavior>();
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        while (mSpawnedObjects.Count < 4) {
-            var test = Instantiate(gunkyPrefab, transform.position, Quaternion.identity);
+    void Update() {
+        while (mLads.Count < 4) {
+            var go = Instantiate(gunkyPrefab, transform.position, Quaternion.identity);
+            var lad  = go.GetComponentInChildren<GunkyLadBehavior>();
+            lad.SetSpawnManager(this);
             
-            mSpawnedObjects.Add(test);
+            // mSpawnedObjects.Add(test);
+            mLads.Add(lad);
         }
-        
-        foreach (var e in mSpawnedObjects) {
-            var g = e.GetComponentInChildren<GunkyLadBehavior>();
-                
-            Debug.Log(g.ShouldBeDestroyed());
+    }
 
-            if (g.ShouldBeDestroyed()) {
-                Debug.Log("destroy");
-                mSpawnedObjects.Remove(e);
-                Destroy(e);
-            }
-        }
+    public void KillMe(GunkyLadBehavior ladToDestroy) {
+        mLads.Remove(ladToDestroy);
+        
+        Destroy(ladToDestroy.gameObject);
     }
 }
