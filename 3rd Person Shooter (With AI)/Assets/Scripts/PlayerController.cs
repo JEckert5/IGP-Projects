@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour
@@ -24,30 +25,43 @@ public class PlayerController : MonoBehaviour
     private Transform bulletParent;
     [SerializeField]
     private float bulletHitMissDistance = 25f;
-
+    [SerializeField] 
+    private int maxAmmo = 15;
+    
     private CharacterController controller;
     private PlayerInput playerInput;
     private Vector3 playerVelocity;
     private bool groundedPlayer;
     private Transform cameraTransform;
+    private int currentAmmo;
+    public int currentReserveAmmo; // Public so AmmoPickup can edit
+    private bool reloading;
 
     private InputAction moveAction;
     private InputAction jumpAction;
     private InputAction shootAction;
     private InputAction menuAction;
+    private InputAction reloadAction;
+
+    public TextMeshProUGUI ammoText;
+    public TextMeshProUGUI reserveText;
 
     public NavMeshAgent cubert;
 
-    private void Awake()
-    {
+    private void Awake() {
+        currentAmmo = maxAmmo;
+        ammoText.text = currentAmmo.ToString();
+        currentReserveAmmo = maxAmmo * 3;
+        reserveText.text = currentReserveAmmo.ToString();
         controller      = GetComponent<CharacterController>();
         playerInput     = GetComponent<PlayerInput>();
-        cameraTransform = Camera.main.transform;
+        cameraTransform = Camera.main!.transform;
         moveAction      = playerInput.actions["Move"];
         jumpAction      = playerInput.actions["Jump"];
         shootAction     = playerInput.actions["Shoot"];
         menuAction      = playerInput.actions["Menu"];
-
+        reloadAction = playerInput.actions["Reload"];
+        
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -56,26 +70,31 @@ public class PlayerController : MonoBehaviour
     {
         shootAction.performed += _ => ShootGun();
         menuAction.performed  += _ => ToMenu();
+        reloadAction.performed += _ => Reload();
     }
+    
     private void OnDisable()
     {
         shootAction.performed -= _ => ShootGun();
         menuAction.performed  -= _ => ToMenu();
+        reloadAction.performed -= _ => Reload();
     }
 
     private void ShootGun()
     {
-        RaycastHit hit;
-
+        if (currentAmmo <= 0 || reloading) return;
+        
         GameObject bullet = GameObject.Instantiate(bulletPrefab, shootingPart.position, Quaternion.identity, bulletParent);
         BulletController bulletController = bullet.GetComponent<BulletController>();
+
+        currentAmmo -= 1;
+        ammoText.text = currentAmmo.ToString();
         
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out hit, Mathf.Infinity))
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, Mathf.Infinity))
         {
             bulletController.target = hit.point;
             bulletController.hit = true;
             cubert.destination = hit.point;
-
         }
         else
         {
@@ -99,7 +118,7 @@ public class PlayerController : MonoBehaviour
                move.z * cameraTransform.forward.normalized;
         move.y = 0f;
 
-        controller.Move(move * Time.deltaTime * playerSpeed);
+        controller.Move(move * (Time.deltaTime * playerSpeed));
 
 
 
@@ -125,5 +144,27 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
         Cursor.visible   = true;
         Cursor.lockState = CursorLockMode.None;
+    }
+
+    private void Reload() {
+        if (currentReserveAmmo <= 0) return;
+        
+        ammoText.text = "Reloading...";
+        reloading = true;
+        currentReserveAmmo -= maxAmmo - currentAmmo;
+
+        // Clamp
+        if (currentReserveAmmo < 0) currentReserveAmmo = 0;
+        
+        StartCoroutine(ReloadTimer());
+    }
+
+    private IEnumerator ReloadTimer() {
+        yield return new WaitForSeconds(0.6f);
+
+        reloading = false;
+        ammoText.text = maxAmmo.ToString();
+        reserveText.text = currentReserveAmmo.ToString();
+        currentAmmo = maxAmmo;
     }
 }
