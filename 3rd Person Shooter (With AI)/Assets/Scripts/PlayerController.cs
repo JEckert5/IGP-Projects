@@ -7,8 +7,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
-public class PlayerController : MonoBehaviour
-{
+public class PlayerController : MonoBehaviour {
     [SerializeField]
     private float playerSpeed = 2.0f;
     [SerializeField]
@@ -27,6 +26,8 @@ public class PlayerController : MonoBehaviour
     private float bulletHitMissDistance = 25f;
     [SerializeField] 
     private int maxAmmo = 15;
+
+    private int health = 100;
     
     private CharacterController controller;
     private PlayerInput playerInput;
@@ -45,8 +46,12 @@ public class PlayerController : MonoBehaviour
 
     public TextMeshProUGUI ammoText;
     public TextMeshProUGUI reserveText;
+    public TextMeshProUGUI healthText;
 
-    public NavMeshAgent cubert;
+    public Canvas ammoCanvas;
+    public Canvas gameOverCanvas;
+
+    private int currentScore;
 
     private void Awake() {
         currentAmmo = maxAmmo;
@@ -61,6 +66,10 @@ public class PlayerController : MonoBehaviour
         shootAction     = playerInput.actions["Shoot"];
         menuAction      = playerInput.actions["Menu"];
         reloadAction = playerInput.actions["Reload"];
+
+        gameOverCanvas.enabled = false;
+
+        healthText.text = health.ToString();
         
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -84,20 +93,20 @@ public class PlayerController : MonoBehaviour
     {
         if (currentAmmo <= 0 || reloading) return;
         
+        AudioManager.instance.Play("GunShot");
+        
         GameObject bullet = GameObject.Instantiate(bulletPrefab, shootingPart.position, Quaternion.identity, bulletParent);
         BulletController bulletController = bullet.GetComponent<BulletController>();
+        
+        bulletController.SetParent(gameObject);
 
         currentAmmo -= 1;
         ammoText.text = currentAmmo.ToString();
         
-        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, Mathf.Infinity))
-        {
+        if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, Mathf.Infinity)) {
             bulletController.target = hit.point;
             bulletController.hit = true;
-            cubert.destination = hit.point;
-        }
-        else
-        {
+        } else {
             bulletController.target = cameraTransform.position + cameraTransform.forward * 25;
             bulletController.hit = false;
         }
@@ -119,12 +128,9 @@ public class PlayerController : MonoBehaviour
         move.y = 0f;
 
         controller.Move(move * (Time.deltaTime * playerSpeed));
-
-
-
+        
         // Changes the height position of the player..
-        if (jumpAction.triggered && groundedPlayer)
-        {
+        if (jumpAction.triggered && groundedPlayer) {
             playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
         }
 
@@ -132,8 +138,7 @@ public class PlayerController : MonoBehaviour
         controller.Move(playerVelocity * Time.deltaTime);
 
         // Rotate towards camera direction.
-        if (input.x != 0 || input.y != 0)
-        {
+        if (input.x != 0 || input.y != 0) {
             float targetAngle = cameraTransform.eulerAngles.y;
             Quaternion targetRotation = Quaternion.Euler(0, targetAngle, 0);
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
@@ -144,6 +149,8 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
         Cursor.visible   = true;
         Cursor.lockState = CursorLockMode.None;
+        
+        UpdateHighScore();
     }
 
     private void Reload() {
@@ -165,6 +172,40 @@ public class PlayerController : MonoBehaviour
         reloading = false;
         ammoText.text = maxAmmo.ToString();
         reserveText.text = currentReserveAmmo.ToString();
-        currentAmmo = maxAmmo;
+        currentAmmo = maxAmmo % currentReserveAmmo;
+    }
+
+    public void Damage(int dmg) {
+        health -= dmg;
+
+        if (health <= 0) {
+            GameOver();
+        }
+
+        healthText.text = health.ToString();
+    }
+
+    private void GameOver() {
+        Time.timeScale = 0;
+        
+        Cursor.visible   = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        ammoCanvas.enabled     = false;
+        gameOverCanvas.enabled = true;
+        
+        UpdateHighScore();
+    }
+
+    public void AddScore() {
+        currentScore += 1;
+    }
+
+    private void UpdateHighScore() {
+        var hs = PlayerPrefs.GetInt("score", 0);
+
+        if (hs < currentScore) {
+            PlayerPrefs.SetInt("score", currentScore);
+        }
     }
 }
