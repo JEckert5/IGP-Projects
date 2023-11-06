@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
 using UnityEngine;
@@ -21,6 +18,7 @@ public class MenuHandler : MonoBehaviour {
     }
     
     public void StartGame() {
+        Time.timeScale = 1f;
         SceneManager.LoadScene("SampleScene");
     }
 
@@ -32,6 +30,11 @@ public class MenuHandler : MonoBehaviour {
     public void Back() {
         menuCanvas.enabled = true;
         htpCanvas.enabled = false;
+    }
+
+    public void Exit() {
+        UnityEngine.Debug.Log("Quitting");
+        Application.Quit();
     }
 
 }

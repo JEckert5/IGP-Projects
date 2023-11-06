@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEditor;
 
 [RequireComponent(typeof(CharacterController), typeof(PlayerInput))]
 public class PlayerController : MonoBehaviour {
@@ -26,6 +27,7 @@ public class PlayerController : MonoBehaviour {
     private float bulletHitMissDistance = 25f;
     [SerializeField] 
     private int maxAmmo = 15;
+    [SerializeField] private AudioSource amogus;
 
     private int health = 100;
     
@@ -73,6 +75,8 @@ public class PlayerController : MonoBehaviour {
         
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+
+        amogus.spatialize = true;
     }
 
     private void OnEnable()
@@ -82,8 +86,7 @@ public class PlayerController : MonoBehaviour {
         reloadAction.performed += _ => Reload();
     }
     
-    private void OnDisable()
-    {
+    private void OnDisable() {
         shootAction.performed -= _ => ShootGun();
         menuAction.performed  -= _ => ToMenu();
         reloadAction.performed -= _ => Reload();
@@ -92,13 +95,16 @@ public class PlayerController : MonoBehaviour {
     private void ShootGun()
     {
         if (currentAmmo <= 0 || reloading) return;
-        
-        AudioManager.instance.Play("GunShot");
+
+        amogus.Play();
         
         GameObject bullet = GameObject.Instantiate(bulletPrefab, shootingPart.position, Quaternion.identity, bulletParent);
         BulletController bulletController = bullet.GetComponent<BulletController>();
         
         bulletController.SetParent(gameObject);
+        ParticleSystem ps = shootingPart.GetComponentInChildren<ParticleSystem>();
+
+        ps.Play();
 
         currentAmmo -= 1;
         ammoText.text = currentAmmo.ToString();
@@ -145,10 +151,11 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
-    private void ToMenu() {
+    public void ToMenu() {
         SceneManager.LoadScene("MainMenu");
         Cursor.visible   = true;
         Cursor.lockState = CursorLockMode.None;
+        AudioManager.instance.StopAllSounds();
         
         UpdateHighScore();
     }
@@ -158,7 +165,10 @@ public class PlayerController : MonoBehaviour {
         
         ammoText.text = "Reloading...";
         reloading = true;
+        int prevRA = currentReserveAmmo;
         currentReserveAmmo -= maxAmmo - currentAmmo;
+
+        currentAmmo = prevRA <= 15 ? prevRA : maxAmmo % prevRA;
 
         // Clamp
         if (currentReserveAmmo < 0) currentReserveAmmo = 0;
@@ -170,9 +180,9 @@ public class PlayerController : MonoBehaviour {
         yield return new WaitForSeconds(0.6f);
 
         reloading = false;
-        ammoText.text = maxAmmo.ToString();
+        
         reserveText.text = currentReserveAmmo.ToString();
-        currentAmmo = maxAmmo % currentReserveAmmo;
+        ammoText.text = currentAmmo.ToString();
     }
 
     public void Damage(int dmg) {

@@ -15,4 +15,4 @@ MonoBehaviour:
   enemyPrefab: {fileID: 6031852777105547818, guid: 3e89d3a506bf8456d8ec4725caf6547f,
     type: 3}
   size: 6
-  locationTag: WaveSpawnLocations
+  locationTag: WaveSpawnPoints

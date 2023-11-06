@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class WaveManager : MonoBehaviour {
@@ -9,6 +10,9 @@ public class WaveManager : MonoBehaviour {
 
     private Wave currentWave;
     private int waveCounter = 0;
+
+    [SerializeField] private Canvas winCanvas;
+    [SerializeField] private Canvas ammoCanvas;
 
     private void Start() {
         currentWave = waves[0];
@@ -27,6 +31,17 @@ public class WaveManager : MonoBehaviour {
         Debug.Log(waveCounter);
 
         if (waveCounter >= waves.Length) {
+            Time.timeScale = 0f;
+
+            ammoCanvas.enabled = false;
+            winCanvas.enabled = true;
+
+            Cursor.visible   = true;
+            Cursor.lockState = CursorLockMode.None;
+            
+            var ot = winCanvas.GetComponentInChildren<TextMeshProUGUI>();
+            ot.text = "YOU WIN!";
+            
             return; // Win
         }
         

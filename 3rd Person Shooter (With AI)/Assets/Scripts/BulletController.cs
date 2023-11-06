@@ -31,7 +31,7 @@ public class BulletController : MonoBehaviour
     }
 
     private void OnCollisionEnter(Collision collision) {
-        if (collision.gameObject.CompareTag(parent.tag))
+        if (parent != null && collision.gameObject.CompareTag(parent.tag))
             return;
         
         ContactPoint contact = collision.GetContact(0);
@@ -44,9 +44,7 @@ public class BulletController : MonoBehaviour
             
             Debug.Log("Damage Player");
 
-            Destroy(gameObject);
-
-            return;
+            goto Destroy;
         }
 
         if (collision.gameObject.CompareTag("Enemy")) {
@@ -55,10 +53,9 @@ public class BulletController : MonoBehaviour
             if (glorg.Damage(20)) {
                 parent.GetComponent<PlayerController>().AddScore();
             }
-            
-            Destroy(gameObject);
         }
-        
+Destroy:
+        Destroy(gameObject);
     }
 
     public void SetParent(GameObject obj) {

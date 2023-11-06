@@ -17,6 +17,8 @@ public class EnemyController : MonoBehaviour {
 
     [SerializeField] private Transform shootPoint;
 
+    [SerializeField] private AudioSource gunSource;
+
     private Wave wave;
         
     private float shootTimer;
@@ -28,6 +30,7 @@ public class EnemyController : MonoBehaviour {
         player          = GameObject.FindGameObjectWithTag("Player").transform;
         shootTimer      = ShootTimerDefault;
         healthText.text = health.ToString();
+        gunSource.spatialize = true;
     }
 
     private void Update() {
@@ -49,8 +52,10 @@ public class EnemyController : MonoBehaviour {
     private void Shoot() {
         var bullet     = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
         var bulletController = bullet.GetComponent<BulletController>();
-        
+        shootPoint.GetComponentInChildren<ParticleSystem>().Play();
         bulletController.SetParent(gameObject);
+
+        gunSource.Play();
         
         // Debug.Log("Shoot");
         
@@ -64,6 +69,8 @@ public class EnemyController : MonoBehaviour {
     }
 
     public bool Damage(int dmg) {
+        if (health <= 0) return false;
+        
         health -= dmg;
 
         healthText.text = health.ToString();
@@ -71,7 +78,10 @@ public class EnemyController : MonoBehaviour {
         if (health > 0) return false;
 
         wave.Signal(this);
-        Destroy(gameObject);
+        AudioManager.instance.Play("WUHUH");
+        // Destroy(gameObject);
+        enabled = false;
+        gameObject.GetComponentInChildren<ParticleSystem>().Play();
         return true;
     }
 

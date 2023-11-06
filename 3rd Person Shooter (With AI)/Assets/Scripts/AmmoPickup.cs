@@ -8,15 +8,32 @@ public class AmmoPickup : MonoBehaviour {
 
     private Transform player;
 
+    private float ypos;
+    private float variance;
+    private float yvel;
+    private bool dir;
+
     private void Start() {
-        player = GameObject.FindGameObjectWithTag("Player").transform;
+        player = GameObject.FindGameObjectWithTag("MainCamera").transform;
         
         if (player == null)
             Debug.Log("Scream and run");
+
+        ypos = transform.position.y;
+        variance = ypos + 0.5f;
     }
 
     private void Update() {
         transform.LookAt(player);
+        transform.forward = -transform.forward;
+
+        ypos = dir ? Mathf.SmoothDamp(ypos, variance, ref yvel, 0.4f) : Mathf.SmoothDamp(ypos, -variance, ref yvel, 0.4f);
+        
+        var position = transform.position;
+        position = new Vector3(position.x, ypos, position.z);
+        transform.position = position;
+
+        dir = !(ypos >= variance);
     }
 
     private void OnTriggerEnter(Collider other) {

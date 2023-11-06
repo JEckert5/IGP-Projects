@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Random = System.Random;
@@ -20,12 +21,14 @@ public class Wave : ScriptableObject {
 
     public void Start() {
         Random r = new Random();
+        livingDudes = new List<GameObject>();
 
         var go   = GameObject.FindGameObjectWithTag(locationTag);
         var locs = go.GetComponentsInChildren<Transform>();
         
         for (int i = 0; i < size; i++) {
-            var dude = Instantiate(enemyPrefab, locs[r.Next(0, locs.Length)].position, Quaternion.identity);
+           // Debug.Log(i + locs[i].tag);
+            var dude = Instantiate(enemyPrefab, locs[r.Next(1, locs.Length)].position, Quaternion.identity);
             var dudeController = dude.GetComponent<EnemyController>();
             
             dudeController.SetWave(this);
