@@ -14,7 +14,7 @@ public class GunkyLadBehavior: MonoBehaviour {
 
     public TextMeshProUGUI healthText;
 
-    private SpawnManager mSpawnManager;
+    private WaveManager mWaveManager;
 
     // Start is called before the first frame update
     void Start() {
@@ -33,7 +33,7 @@ public class GunkyLadBehavior: MonoBehaviour {
         mAgent.destination = destination.position;
 
         if (health <= 0) {
-            mSpawnManager.KillMe(this);
+            // mWaveManager.KillMe(this);
         }
         
         healthText.text = health.ToString();
@@ -44,7 +44,7 @@ public class GunkyLadBehavior: MonoBehaviour {
         // Debug.Log(health);
     }
     
-    public void SetSpawnManager(SpawnManager spawnMan) {
-        mSpawnManager = spawnMan;
+    public void SetSpawnManager(WaveManager waveMan) {
+        mWaveManager = waveMan;
     }
 }
