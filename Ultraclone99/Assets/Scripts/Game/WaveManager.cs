@@ -11,14 +11,22 @@ public class WaveManager : MonoBehaviour {
     
     // Start is called before the first frame update
     void Start() {
-        mCurrentWave = waves[0];
+        mCurrentWave = waves[mWaveCounter];
 
         mWaveCounter += 1;
-        mCurrentWave.Start();
+        mCurrentWave.Begin(this);
     }
 
     // Update is called once per frame
     void Update() {
         
+    }
+
+    public void Signal(Wave wave) {
+        mCurrentWave =  waves[mWaveCounter];
+        
+        mWaveCounter += 1;
+        
+        mCurrentWave.Begin(this);
     }
 }

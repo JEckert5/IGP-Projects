@@ -42,8 +42,6 @@ public class PlayerMovement : MonoBehaviour {
         mFPSActions.Gameplay.jump.performed   += OnJump;
         mFPSActions.Gameplay.sprint.started   += OnSprintPress;
         mFPSActions.Gameplay.sprint.performed += OnSprintRelease;
-        //mFPSActions.Gameplay.crouch.started   += OnCrouchPress;
-        //mFPSActions.Gameplay.crouch.performed += OnCrouchRelease;
     }
 
     // Update is called once per frame
@@ -111,14 +109,6 @@ public class PlayerMovement : MonoBehaviour {
 
     private void OnSprintRelease(InputAction.CallbackContext ctx) {
         movementSpeed /= sprintSpeed;
-    }
-
-    private void OnCrouchPress(InputAction.CallbackContext ctx) {
-        
-    }
-
-    private void OnCrouchRelease(InputAction.CallbackContext ctx) {
-        
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit) {
