@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 
-public class GunBehavior : MonoBehaviour {
+public class dGunBehavior : MonoBehaviour {
 
     private PlayerFPSControls mFPSControls;
 
