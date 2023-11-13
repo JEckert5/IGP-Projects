@@ -12,7 +12,6 @@ public class Wave: ScriptableObject {
     private List<GunkyLadController> mDudes;
     private WaveManager mParent;
     
-
     public void Begin(WaveManager wm) {
         mParent = wm;
         mDudes  = new List<GunkyLadController>();
@@ -37,7 +36,8 @@ public class Wave: ScriptableObject {
         Destroy(lad.gameObject);
         mDudes.Remove(lad);
 
-        mParent.Signal(this);
+        if (mDudes.Count == 0)
+            mParent.Signal(this);
     }
 
     public bool Over() {

@@ -11,23 +11,25 @@ public class Interactable : MonoBehaviour {
         active = other.CompareTag("Player");
 
         if (!active) return;
-        
-        Debug.Log("Enter Collider");
 
         var p = other.GetComponent<PlayerController>();
 
-        p.interactable = this;
+        p.SetInteractable(this);       
     }
 
     protected void OnTriggerExit(Collider other) {
         if (active) {
             var p = other.GetComponent<PlayerController>();
-            p.interactable = null;
+            p.SetInteractable(null);
         }
 
         active = false;
     }
 
-    public virtual void Action() { }
+    public virtual void Action() {
+        if (!active) return;
+        
+        // Call in inherited
+    }
 
 }

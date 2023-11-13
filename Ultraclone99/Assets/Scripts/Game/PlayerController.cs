@@ -7,7 +7,6 @@ using UnityEngine.Networking;
 
 public class PlayerController : MonoBehaviour {
 
-    public Interactable interactable;
 
     [SerializeField] private float movementSpeed;
     [SerializeField] private float sprintSpeed;
@@ -24,12 +23,13 @@ public class PlayerController : MonoBehaviour {
     private float mXRotation;
     private const float MaxRotation = 89.9f;
     private const float Gravity = -9.81f;
+    private Interactable mInteractable;
     
     private void Start() {
         mMove                = Vector3.zero;
         mCharacterController = GetComponent<CharacterController>();
         mXRotation           = 0f;
-        interactable         = null;
+        mInteractable         = null;
 
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour {
         if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit))
             lc.SetTarget(hit.point, position);
         else {
-            lc.SetTarget(shootPoint.forward * 1000f + position, position);
+            lc.SetTarget(shootPoint.forward * 200f + position, position);
 
             return;
         }
@@ -121,10 +121,20 @@ public class PlayerController : MonoBehaviour {
     }
 
     private void Interact() {
-        Debug.Log("interact: " + interactable);
+        Debug.Log("interact: " + mInteractable);
 
-        if (interactable == null) return;
+        if (mInteractable == null) return;
         
-        interactable.Action();
+        mInteractable.Action();
+    }
+
+    private void OnCollisionEnter(Collision other) {
+        if (other.collider.CompareTag("Ceiling")) {
+            mYVeloctiy = -mYVeloctiy;
+        }
+    }
+
+    public void SetInteractable(Interactable i) {
+        mInteractable = i;
     }
 }

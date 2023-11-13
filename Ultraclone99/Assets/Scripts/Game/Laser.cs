@@ -12,6 +12,7 @@ public class Laser : MonoBehaviour {
     private Vector3 mTail;
     private Vector3 mHead;
     private float mTiterator;
+    private float mMagnitude;
     
     // Start is called before the first frame update
     private void Start() {
@@ -23,18 +24,22 @@ public class Laser : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
-        //mTail = Vector3.Lerp(mTail, mHead, mTiterator);
-        //mLineRenderer.SetPosition(0, mTail);
-        //mTiterator += Time.deltaTime;
+        mTail = Vector3.Lerp(mTail, mHead, mTiterator);
+        mLineRenderer.SetPosition(0, mTail);
+
+        mTiterator += Time.deltaTime / (mMagnitude / 6);
+
+        System.Math.Sqrt(333);
     }
 
     public void SetTarget(Vector3 target, Vector3 spawn) {
         mLineRenderer.SetPosition(0, spawn);
         mLineRenderer.SetPosition(1, target);
-        // Debug.Log("line renderer" + mLineRenderer.GetPosition(1));
 
         mTail = spawn;
         mHead = target;
+        
+        mMagnitude = (mHead - mTail).sqrMagnitude;
         
         Debug.Log(target);
         

@@ -6,62 +6,19 @@ using UnityEngine.InputSystem;
 
 public class DoorButton : Interactable {
 
-    private enum DoorState {
-        Open,
-        Closed,
-    }
-
-    [SerializeField] private Transform door;
-    [SerializeField] private float doorRange;
-    private Vector3 mDoorPos;
-    private DoorState mDoorState = DoorState.Closed;
-    private float mTiterator;
-    private float mUpTarget;
-    private float mDownTarget;
-    private bool mOpen;
+    [SerializeField] private Animator animator;
+    private bool mState;
 
     private void Start() {
-        mDoorPos = door.position;
-        mUpTarget = mDoorPos.y + doorRange;
-        mDownTarget = mDoorPos.y - doorRange;
+        mState = animator.GetBool("Open");
     }
 
     public override void Action() {
-        if (!active) return;
+        base.Action();
         
-        switch (mDoorState) {
-            case DoorState.Closed:
-                OpenDoor();
+        animator.SetBool("Open", !mState);
 
-                break;
-            case DoorState.Open:
-                CloseDoor();
-
-                break;
-        }
+        mState = animator.GetBool("Open");
     }
 
-    private void Update() {
-        if (mDoorState == DoorState.Closed && )
-    }
-
-    private void OpenDoor() {
-        while (mDoorPos.y < mUpTarget - 0.01f) {
-            mDoorPos.y = Mathf.SmoothDamp(mDoorPos.y, mUpTarget, ref mTiterator, 0.5f);
-            door.position = mDoorPos;
-        }
-
-        mTiterator = 0f;
-        mDoorState = DoorState.Open;
-    }
-
-    private void CloseDoor() {
-        while (mDoorPos.y > mDownTarget + 0.01f) {
-            mDoorPos.y = Mathf.SmoothDamp(mDoorPos.y, mDownTarget, ref mTiterator, 0.5f);
-            door.position = mDoorPos;
-        }
-
-        mTiterator = 0f;
-        mDoorState = DoorState.Closed;
-    }
 }
