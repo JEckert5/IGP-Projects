@@ -6,9 +6,12 @@ using UnityEngine.ProBuilder.MeshOperations;
 using UnityEngine.Serialization;
 
 public class Laser : MonoBehaviour {
-
-    private Transform mTarget;
+    
     private LineRenderer mLineRenderer;
+
+    private Vector3 mTail;
+    private Vector3 mHead;
+    private float mTiterator;
     
     // Start is called before the first frame update
     private void Start() {
@@ -20,14 +23,21 @@ public class Laser : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
-        if (mTarget.Equals(null)) return;
-        
-        // Retract tail.
+        //mTail = Vector3.Lerp(mTail, mHead, mTiterator);
+        //mLineRenderer.SetPosition(0, mTail);
+        //mTiterator += Time.deltaTime;
     }
 
-    public void SetTarget(Transform target) {
-        mTarget = target;
+    public void SetTarget(Vector3 target, Vector3 spawn) {
+        mLineRenderer.SetPosition(0, spawn);
+        mLineRenderer.SetPosition(1, target);
+        // Debug.Log("line renderer" + mLineRenderer.GetPosition(1));
+
+        mTail = spawn;
+        mHead = target;
         
-        mLineRenderer.SetPosition(0, mTarget.position);
+        Debug.Log(target);
+        
+        Destroy(gameObject, 1.2f);
     }
 }

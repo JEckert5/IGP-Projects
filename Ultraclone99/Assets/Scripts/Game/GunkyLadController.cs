@@ -4,16 +4,17 @@ using UnityEngine;
 using UnityEngine.AI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
-public class GunkyLadBehavior: MonoBehaviour {
+public class GunkyLadController: MonoBehaviour {
 
     private NavMeshAgent mAgent;
-    private Transform mDestination;
+    private Transform mDestination; // Player
     private Wave mWave;
-
+    
+    [SerializeField] private Transform healthTextTransform;
     [SerializeField] private int health;
-
-    public TextMeshProUGUI healthText;
+    [SerializeField] private TextMeshProUGUI healthText;
 
     // Start is called before the first frame update
     private void Start() {
@@ -36,6 +37,9 @@ public class GunkyLadBehavior: MonoBehaviour {
         
         mAgent.destination = mDestination.position;
         healthText.text = health.ToString();
+        
+        healthTextTransform.LookAt(mDestination);
+        healthTextTransform.forward = -healthTextTransform.forward; // Invert
     }
 
     public void DoDamage(int dmg) {

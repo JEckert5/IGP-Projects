@@ -9,13 +9,13 @@ public class Wave: ScriptableObject {
     [SerializeField] private string spawnTag;
     [SerializeField] private int size;
     private List<Transform> mSpawnPoints;
-    private List<GunkyLadBehavior> mDudes;
+    private List<GunkyLadController> mDudes;
     private WaveManager mParent;
     
 
     public void Begin(WaveManager wm) {
         mParent = wm;
-        mDudes  = new List<GunkyLadBehavior>();
+        mDudes  = new List<GunkyLadController>();
         var p = GameObject.FindGameObjectWithTag(spawnTag).GetComponentsInChildren<Transform>();
 
         mSpawnPoints = new List<Transform>(p);
@@ -26,14 +26,14 @@ public class Wave: ScriptableObject {
         
         for (int i = 0; i < size; i++) {
             var sp  = mSpawnPoints[random.Next(mSpawnPoints.Count)];
-            var lad = Instantiate(prefab, sp.position, Quaternion.identity).GetComponentInChildren<GunkyLadBehavior>();
+            var lad = Instantiate(prefab, sp.position, Quaternion.identity).GetComponentInChildren<GunkyLadController>();
 
             lad.SetWave(this);
             mDudes.Add(lad);
         }
     }
 
-    public void Signal(GunkyLadBehavior lad) {
+    public void Signal(GunkyLadController lad) {
         Destroy(lad.gameObject);
         mDudes.Remove(lad);
 

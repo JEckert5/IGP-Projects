@@ -7,6 +7,7 @@ TagManager:
   - Ceiling
   - Enemy
   - WaveSpawnPoints
+  - Interactable
   layers:
   - Default
   - TransparentFX

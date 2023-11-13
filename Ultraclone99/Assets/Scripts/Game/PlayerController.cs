@@ -7,6 +7,8 @@ using UnityEngine.Networking;
 
 public class PlayerController : MonoBehaviour {
 
+    public Interactable interactable;
+
     [SerializeField] private float movementSpeed;
     [SerializeField] private float sprintSpeed;
     [SerializeField] private float jumpHeight;
@@ -17,6 +19,7 @@ public class PlayerController : MonoBehaviour {
     private PlayerFPSControls mInputs;
     private CharacterController mCharacterController;
     private Vector3 mMove;
+    private float mYVeloctiy;
 
     private float mXRotation;
     private const float MaxRotation = 89.9f;
@@ -26,6 +29,7 @@ public class PlayerController : MonoBehaviour {
         mMove                = Vector3.zero;
         mCharacterController = GetComponent<CharacterController>();
         mXRotation           = 0f;
+        interactable         = null;
 
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -37,6 +41,7 @@ public class PlayerController : MonoBehaviour {
         mInputs.Gameplay.sprint.started   += _ => OnSprintPress();
         mInputs.Gameplay.sprint.performed += _ => OnSprintRelease();
         mInputs.Gameplay.fire.started     += _ => OnShoot();
+        mInputs.Gameplay.interact.performed += _ => Interact();
     }
 
     private void OnEnable() {
@@ -64,11 +69,17 @@ public class PlayerController : MonoBehaviour {
         cameraPosition.localRotation =  Quaternion.Euler(mXRotation, 0, 0);
 
     doMove:
-        if (moveInput == Vector2.zero) return;
-        
         mMove = transform.right * moveInput.x + transform.forward * moveInput.y;
+        
+        // Gravity
+        if (mCharacterController.isGrounded && mYVeloctiy < 0f)
+            mYVeloctiy = -1f;
+        else
+            mYVeloctiy += Gravity * Time.deltaTime;
 
-        mMove.y += Gravity * Time.deltaTime;
+        mMove.y = mYVeloctiy;
+        
+        // Momentum
         
         mCharacterController.Move(mMove * (movementSpeed * Time.deltaTime));
     }
@@ -76,7 +87,9 @@ public class PlayerController : MonoBehaviour {
     private void OnJump() {
         if (!mCharacterController.isGrounded) return;
 
-        mMove.y = Mathf.Sqrt(jumpHeight * -2f * Gravity);
+        // Debug.Log("JUMP");
+        // Why yes I did take this from Brackeys 🐐
+        mYVeloctiy = Mathf.Sqrt(jumpHeight * -2 * Gravity);
     }
 
     private void OnSprintPress() {
@@ -89,13 +102,29 @@ public class PlayerController : MonoBehaviour {
 
     private void OnShoot() {
         // Use camera for hit reg, then shoot from shootpoint.
-        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit)) {
-            var laser = Instantiate(laserPrefab, shootPoint.position, Quaternion.identity);
-            var lc    = laser.GetComponent<Laser>();
-            
-            lc.SetTarget(hit.transform);
+        var position = shootPoint.position;
+        var laser = Instantiate(laserPrefab, position, Quaternion.identity, shootPoint);
+        var lc = laser.GetComponent<Laser>();
+        
+        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit))
+            lc.SetTarget(hit.point, position);
+        else {
+            lc.SetTarget(shootPoint.forward * 1000f + position, position);
 
-            Debug.DrawRay(cameraPosition.position, cameraPosition.forward * hit.distance, Color.blue);
+            return;
         }
+
+        if (!hit.collider.CompareTag("Enemy")) return;
+
+        var enemy = hit.collider.gameObject.GetComponent<GunkyLadController>();
+        enemy.DoDamage(15);
+    }
+
+    private void Interact() {
+        Debug.Log("interact: " + interactable);
+
+        if (interactable == null) return;
+        
+        interactable.Action();
     }
 }

@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6041c8efff023849a9623ea28a6ed06, type: 3}
   m_Name: Wave1
   m_EditorClassIdentifier: 
-  prefab: {fileID: 4871381068033753375, guid: ce96b7e834ad0494fae2980639ebc3e0, type: 3}
+  prefab: {fileID: 4547859503545905350, guid: b97a8e3690c1751468e223dc438e4bc0, type: 3}
   spawnTag: WaveSpawnPoints
+  size: 6
