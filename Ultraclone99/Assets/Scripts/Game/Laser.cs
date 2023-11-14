@@ -25,15 +25,13 @@ public class Laser : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
-        if ((mTarget - mHead).sqrMagnitude <= 0.05f * 0.05f) {
+        if ((mTarget - mHead).sqrMagnitude <= 0.05f * 0.05f) { // It's about right
             DestroyImmediate(gameObject);
             return;
-        } // It's about right
+        } 
         
         mHead = Vector3.SmoothDamp(mHead, mTarget, ref mTiterator, mSmoothTime);
         mTail = Vector3.SmoothDamp(mTail, mTarget, ref mTiterator2, mSmoothTime);
-        
-        // Debug.Log(mTiterator);
         
         mLineRenderer.SetPositions(new[] {mTail, mHead});
     }

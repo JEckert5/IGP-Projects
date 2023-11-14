@@ -44,6 +44,8 @@ public class GunkyLadController: MonoBehaviour {
 
     public void DoDamage(int dmg) {
         health -= dmg;
+
+        healthText.text = health.ToString();
     }
     
     public void SetWave(Wave wave) {

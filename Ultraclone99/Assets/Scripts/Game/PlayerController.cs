@@ -2,19 +2,20 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour {
 
     #region Cereal
+
     [SerializeField] private float health;
     [SerializeField] private Transform cameraPosition;
     [SerializeField] private float sensitivity;
     [SerializeField] private float gravity;
+
     #endregion
 
     #region Gun
+
     [SerializeField] private TextMeshProUGUI ammoText;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI reserveText;
@@ -27,10 +28,11 @@ public class PlayerController : MonoBehaviour {
     private int mReserveAmmo;
     private bool mReloading;
     private bool mIsDelaying;
-    private bool mShooting;
+
     #endregion
-        
+
     #region Movement
+
     [SerializeField] private float movementSpeed;
     [SerializeField] private float sprintSpeed;
     [SerializeField] private float jumpHeight;
@@ -42,14 +44,13 @@ public class PlayerController : MonoBehaviour {
     private float mYVeloctiy;
     private Vector2 mMomentum;
     private Vector2 mRefVel;
-    
     private float mXRotation;
     private const float MaxRotation = 89.9f;
-    
+
     #endregion
-    
+
     private Interactable mInteractable;
-    
+
     private void Start() {
         mMove                = Vector3.zero;
         mCharacterController = GetComponent<CharacterController>();
@@ -72,8 +73,6 @@ public class PlayerController : MonoBehaviour {
         mInputs.Gameplay.jump.performed     += _ => OnJump();
         mInputs.Gameplay.sprint.started     += _ => OnSprintPress();
         mInputs.Gameplay.sprint.performed   += _ => OnSprintRelease();
-        mInputs.Gameplay.fire.started       += _ => OnShoot();
-        mInputs.Gameplay.fire.canceled      += _ => StopShoot();
         mInputs.Gameplay.interact.performed += _ => Interact();
         mInputs.Gameplay.reload.started     += _ => Reload();
     }
@@ -85,21 +84,21 @@ public class PlayerController : MonoBehaviour {
     private void OnDisable() {
         mInputs.Disable();
     }
-    
+
     private void Update() {
         var moveInput = mInputs.Gameplay.move.ReadValue<Vector2>();
         var lookInput = mInputs.Gameplay.look.ReadValue<Vector2>();
-        
+
         // Update momentum before applying move updates.
         Momentum(moveInput);
-        
+
         /*
          * Rotate around Player body when looking horizontal.
          * Rotate cameraPosition X for vertical.
          */
 
         if (lookInput == Vector2.zero) goto doMove;
-        
+
         transform.Rotate(Vector3.up, lookInput.x * Time.deltaTime * sensitivity);
         mXRotation                   -= lookInput.y * Time.deltaTime * sensitivity;
         mXRotation                   =  Mathf.Clamp(mXRotation, -MaxRotation, MaxRotation);
@@ -107,9 +106,7 @@ public class PlayerController : MonoBehaviour {
 
     doMove:
         mMove = transform.right * mMomentum.x + transform.forward * mMomentum.y;
-        
-        // Debug.Log(mMomentum);
-        
+
         // Gravity
         if (mCharacterController.isGrounded && mYVeloctiy < 0f)
             mYVeloctiy = -1f;
@@ -117,10 +114,10 @@ public class PlayerController : MonoBehaviour {
             mYVeloctiy += gravity * Time.deltaTime;
 
         mMove.y = mYVeloctiy;
-        
-        // Debug.Log(mMove);
-        
+
         mCharacterController.Move(mMove * (movementSpeed * Time.deltaTime));
+        
+        if (mInputs.Gameplay.fire.IsPressed()) Shoot();
     }
 
     private void Momentum(Vector2 inputs) {
@@ -132,10 +129,10 @@ public class PlayerController : MonoBehaviour {
             mMomentum.y = Mathf.SmoothDamp(mMomentum.y, inputs.y, ref mRefVel.y, decelerationTime);
         }
     }
-    
+
     private void OnJump() {
         if (!mCharacterController.isGrounded) return;
-        
+
         // Why yes I did take this from Brackeys 🐐
         mYVeloctiy = Mathf.Sqrt(jumpHeight * -2 * gravity);
     }
@@ -148,58 +145,44 @@ public class PlayerController : MonoBehaviour {
         movementSpeed /= sprintSpeed;
     }
 
-    private void OnShoot() {
+    private void Shoot() {
         if (mReloading || mIsDelaying || mCurrentAmmo <= 0) return;
 
-        mShooting = true;
-        
-        while (mInputs.Gameplay.fire.inProgress) {
-            if (mIsDelaying) continue;
-            
-            mCurrentAmmo  -= 1;
-            ammoText.text =  mCurrentAmmo.ToString();
-            mIsDelaying   =  true;
-            StartCoroutine(ShootDelay());
-        
-            // Use camera for hit reg, then shoot from shootpoint.
-            var position = shootPoint.position;
-            var laser    = Instantiate(laserPrefab, position, Quaternion.identity, shootPoint);
-            var lc       = laser.GetComponent<Laser>();
+        mCurrentAmmo  -= 1;
+        ammoText.text =  mCurrentAmmo.ToString();
+        mIsDelaying   =  true;
+        StartCoroutine(ShootDelay());
 
-            if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit) && hit.distance <= 200f)
-                lc.SetTarget(hit.point, position);
-            else {
-                lc.SetTarget(shootPoint.forward * 200f + position, position);
+        // Use camera for hit reg, then shoot from shootpoint.
+        var position = shootPoint.position;
+        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, shootPoint);
+        var lc       = laser.GetComponent<Laser>();
 
-                continue;
-            }
+        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit) && hit.distance <= 200f)
+            lc.SetTarget(hit.point, position);
+        else {
+            lc.SetTarget(shootPoint.forward * 200f + position, position);
 
-            if (!hit.collider.CompareTag("Enemy")) continue;
+            return;
+        }
 
-            var enemy = hit.collider.gameObject.GetComponent<GunkyLadController>();
-            enemy.DoDamage(15);
-        } 
+        if (!hit.collider.CompareTag("Enemy")) return;
+
+        var enemy = hit.collider.gameObject.GetComponent<GunkyLadController>();
+        enemy.DoDamage(15);
     }
 
-    private void StopShoot() {
-        mShooting = false;
-    }
     private void Interact() {
         // Debug.Log("interact: " + mInteractable);
 
         if (mInteractable == null) return;
-        
+
         mInteractable.Action();
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit) {
         if (!mCharacterController.isGrounded && hit.collider.CompareTag("Ceiling"))
             mYVeloctiy = -mYVeloctiy * Time.deltaTime;
-    }
-
-    private void OnCollisionEnter(Collision other) {
-        if (!mCharacterController.isGrounded && other.collider.CompareTag("Ceiling"))
-            mYVeloctiy = -mYVeloctiy;
     }
 
     public void SetInteractable(Interactable i) {
@@ -230,9 +213,9 @@ public class PlayerController : MonoBehaviour {
     private IEnumerator ReloadTimer() {
         yield return new WaitForSeconds(reloadTime);
 
-        mReloading    = false;
-        ammoText.text = mCurrentAmmo.ToString();
-        reserveText.text   = mReserveAmmo.ToString();
+        mReloading       = false;
+        ammoText.text    = mCurrentAmmo.ToString();
+        reserveText.text = mReserveAmmo.ToString();
     }
 
     private IEnumerator ShootDelay() {
@@ -240,4 +223,5 @@ public class PlayerController : MonoBehaviour {
 
         mIsDelaying = false;
     }
+
 }
