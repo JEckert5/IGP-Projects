@@ -1,47 +1,81 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.Mathematics;
+using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
+using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour {
 
+    #region Cereal
+    [SerializeField] private float health;
+    [SerializeField] private Transform cameraPosition;
+    [SerializeField] private float sensitivity;
+    [SerializeField] private float gravity;
+    #endregion
 
+    #region Gun
+    [SerializeField] private TextMeshProUGUI ammoText;
+    [SerializeField] private TextMeshProUGUI healthText;
+    [SerializeField] private TextMeshProUGUI reserveText;
+    [SerializeField] private float reloadTime;
+    [SerializeField] private int maxMagazine;
+    [SerializeField] private int maxReserve;
+    [SerializeField] private GameObject laserPrefab;
+    [SerializeField] private Transform shootPoint;
+    private int mCurrentAmmo;
+    private int mReserveAmmo;
+    private bool mReloading;
+    private bool mIsDelaying;
+    private bool mShooting;
+    #endregion
+        
+    #region Movement
     [SerializeField] private float movementSpeed;
     [SerializeField] private float sprintSpeed;
     [SerializeField] private float jumpHeight;
-    [SerializeField] private Transform cameraPosition;
-    [SerializeField] private GameObject laserPrefab;
-    [SerializeField] private Transform shootPoint;
-    
+    [SerializeField] private float accelerationTime;
+    [SerializeField] private float decelerationTime;
     private PlayerFPSControls mInputs;
     private CharacterController mCharacterController;
     private Vector3 mMove;
     private float mYVeloctiy;
-
+    private Vector2 mMomentum;
+    private Vector2 mRefVel;
+    
     private float mXRotation;
     private const float MaxRotation = 89.9f;
-    private const float Gravity = -9.81f;
+    
+    #endregion
+    
     private Interactable mInteractable;
     
     private void Start() {
         mMove                = Vector3.zero;
         mCharacterController = GetComponent<CharacterController>();
         mXRotation           = 0f;
-        mInteractable         = null;
+        mMomentum            = Vector2.zero;
+        mInteractable        = null;
+        mCurrentAmmo         = maxMagazine;
+        mReserveAmmo         = maxReserve / 3;
+        healthText.text      = "Health: " + health;
+        ammoText.text        = mCurrentAmmo.ToString();
+        reserveText.text     = mReserveAmmo.ToString();
+        Debug.Log(mInputs.Gameplay.fire.interactions);
 
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Awake() {
-        mInputs                           =  new PlayerFPSControls();
-        mInputs.Gameplay.jump.performed   += _ => OnJump();
-        mInputs.Gameplay.sprint.started   += _ => OnSprintPress();
-        mInputs.Gameplay.sprint.performed += _ => OnSprintRelease();
-        mInputs.Gameplay.fire.started     += _ => OnShoot();
+        mInputs                             =  new PlayerFPSControls();
+        mInputs.Gameplay.jump.performed     += _ => OnJump();
+        mInputs.Gameplay.sprint.started     += _ => OnSprintPress();
+        mInputs.Gameplay.sprint.performed   += _ => OnSprintRelease();
+        mInputs.Gameplay.fire.started       += _ => OnShoot();
+        mInputs.Gameplay.fire.canceled      += _ => StopShoot();
         mInputs.Gameplay.interact.performed += _ => Interact();
+        mInputs.Gameplay.reload.started     += _ => Reload();
     }
 
     private void OnEnable() {
@@ -56,6 +90,9 @@ public class PlayerController : MonoBehaviour {
         var moveInput = mInputs.Gameplay.move.ReadValue<Vector2>();
         var lookInput = mInputs.Gameplay.look.ReadValue<Vector2>();
         
+        // Update momentum before applying move updates.
+        Momentum(moveInput);
+        
         /*
          * Rotate around Player body when looking horizontal.
          * Rotate cameraPosition X for vertical.
@@ -63,33 +100,44 @@ public class PlayerController : MonoBehaviour {
 
         if (lookInput == Vector2.zero) goto doMove;
         
-        transform.Rotate(Vector3.up, lookInput.x);
-        mXRotation                   -= lookInput.y;
+        transform.Rotate(Vector3.up, lookInput.x * Time.deltaTime * sensitivity);
+        mXRotation                   -= lookInput.y * Time.deltaTime * sensitivity;
         mXRotation                   =  Mathf.Clamp(mXRotation, -MaxRotation, MaxRotation);
         cameraPosition.localRotation =  Quaternion.Euler(mXRotation, 0, 0);
 
     doMove:
-        mMove = transform.right * moveInput.x + transform.forward * moveInput.y;
+        mMove = transform.right * mMomentum.x + transform.forward * mMomentum.y;
+        
+        // Debug.Log(mMomentum);
         
         // Gravity
         if (mCharacterController.isGrounded && mYVeloctiy < 0f)
             mYVeloctiy = -1f;
         else
-            mYVeloctiy += Gravity * Time.deltaTime;
+            mYVeloctiy += gravity * Time.deltaTime;
 
         mMove.y = mYVeloctiy;
         
-        // Momentum
+        // Debug.Log(mMove);
         
         mCharacterController.Move(mMove * (movementSpeed * Time.deltaTime));
     }
 
+    private void Momentum(Vector2 inputs) {
+        if (inputs != Vector2.zero) {
+            mMomentum.x = Mathf.SmoothDamp(mMomentum.x, inputs.x, ref mRefVel.x, accelerationTime);
+            mMomentum.y = Mathf.SmoothDamp(mMomentum.y, inputs.y, ref mRefVel.y, accelerationTime);
+        } else {
+            mMomentum.x = Mathf.SmoothDamp(mMomentum.x, inputs.x, ref mRefVel.x, decelerationTime);
+            mMomentum.y = Mathf.SmoothDamp(mMomentum.y, inputs.y, ref mRefVel.y, decelerationTime);
+        }
+    }
+    
     private void OnJump() {
         if (!mCharacterController.isGrounded) return;
-
-        // Debug.Log("JUMP");
+        
         // Why yes I did take this from Brackeys 🐐
-        mYVeloctiy = Mathf.Sqrt(jumpHeight * -2 * Gravity);
+        mYVeloctiy = Mathf.Sqrt(jumpHeight * -2 * gravity);
     }
 
     private void OnSprintPress() {
@@ -101,40 +149,95 @@ public class PlayerController : MonoBehaviour {
     }
 
     private void OnShoot() {
-        // Use camera for hit reg, then shoot from shootpoint.
-        var position = shootPoint.position;
-        var laser = Instantiate(laserPrefab, position, Quaternion.identity, shootPoint);
-        var lc = laser.GetComponent<Laser>();
+        if (mReloading || mIsDelaying || mCurrentAmmo <= 0) return;
+
+        mShooting = true;
         
-        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit))
-            lc.SetTarget(hit.point, position);
-        else {
-            lc.SetTarget(shootPoint.forward * 200f + position, position);
+        while (mInputs.Gameplay.fire.inProgress) {
+            if (mIsDelaying) continue;
+            
+            mCurrentAmmo  -= 1;
+            ammoText.text =  mCurrentAmmo.ToString();
+            mIsDelaying   =  true;
+            StartCoroutine(ShootDelay());
+        
+            // Use camera for hit reg, then shoot from shootpoint.
+            var position = shootPoint.position;
+            var laser    = Instantiate(laserPrefab, position, Quaternion.identity, shootPoint);
+            var lc       = laser.GetComponent<Laser>();
 
-            return;
-        }
+            if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit) && hit.distance <= 200f)
+                lc.SetTarget(hit.point, position);
+            else {
+                lc.SetTarget(shootPoint.forward * 200f + position, position);
 
-        if (!hit.collider.CompareTag("Enemy")) return;
+                continue;
+            }
 
-        var enemy = hit.collider.gameObject.GetComponent<GunkyLadController>();
-        enemy.DoDamage(15);
+            if (!hit.collider.CompareTag("Enemy")) continue;
+
+            var enemy = hit.collider.gameObject.GetComponent<GunkyLadController>();
+            enemy.DoDamage(15);
+        } 
     }
 
+    private void StopShoot() {
+        mShooting = false;
+    }
     private void Interact() {
-        Debug.Log("interact: " + mInteractable);
+        // Debug.Log("interact: " + mInteractable);
 
         if (mInteractable == null) return;
         
         mInteractable.Action();
     }
 
+    private void OnControllerColliderHit(ControllerColliderHit hit) {
+        if (!mCharacterController.isGrounded && hit.collider.CompareTag("Ceiling"))
+            mYVeloctiy = -mYVeloctiy * Time.deltaTime;
+    }
+
     private void OnCollisionEnter(Collision other) {
-        if (other.collider.CompareTag("Ceiling")) {
+        if (!mCharacterController.isGrounded && other.collider.CompareTag("Ceiling"))
             mYVeloctiy = -mYVeloctiy;
-        }
     }
 
     public void SetInteractable(Interactable i) {
         mInteractable = i;
+    }
+
+    public void DoDamage(float dmg) {
+        health -= dmg;
+
+        healthText.text = "Health: " + health;
+    }
+
+    private void Reload() {
+        if (mReserveAmmo <= 0 || mReloading) return; // Play click sound when out of ammo.
+
+        mReloading    = true;
+        ammoText.text = "...";
+        var prevResAmmo = mReserveAmmo;
+        mReserveAmmo -= maxMagazine - mCurrentAmmo;
+
+        mCurrentAmmo = prevResAmmo <= maxMagazine ? prevResAmmo : maxMagazine % prevResAmmo;
+
+        mReserveAmmo = Mathf.Clamp(mReserveAmmo, 0, maxReserve);
+
+        StartCoroutine(ReloadTimer());
+    }
+
+    private IEnumerator ReloadTimer() {
+        yield return new WaitForSeconds(reloadTime);
+
+        mReloading    = false;
+        ammoText.text = mCurrentAmmo.ToString();
+        reserveText.text   = mReserveAmmo.ToString();
+    }
+
+    private IEnumerator ShootDelay() {
+        yield return new WaitForSeconds(0.099f);
+
+        mIsDelaying = false;
     }
 }

@@ -33,8 +33,8 @@ public class Wave: ScriptableObject {
     }
 
     public void Signal(GunkyLadController lad) {
-        Destroy(lad.gameObject);
         mDudes.Remove(lad);
+        Destroy(lad.gameObject);
 
         if (mDudes.Count == 0)
             mParent.Signal(this);

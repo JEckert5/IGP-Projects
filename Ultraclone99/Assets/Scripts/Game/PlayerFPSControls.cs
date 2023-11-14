@@ -69,7 +69,7 @@ public partial class @PlayerFPSControls: IInputActionCollection2, IDisposable
                     ""id"": ""5239f115-8870-4e2f-b74b-1a3a729dad94"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
-                    ""interactions"": """",
+                    ""interactions"": ""SlowTap(duration=0.01)"",
                     ""initialStateCheck"": false
                 },
                 {
