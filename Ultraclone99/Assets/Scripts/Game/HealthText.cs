@@ -15,10 +15,9 @@ public class HealthText : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        Transform transform1;
-        (transform1 = transform).LookAt(mPlayer);
+        transform.LookAt(mPlayer);
 
         // Flip Text, forward vector is backwards technically
-        transform1.forward = -transform1.forward;
+        transform.forward *= -1;
     }
 }

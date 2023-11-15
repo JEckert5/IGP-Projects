@@ -117,7 +117,7 @@ public class PlayerController : MonoBehaviour {
 
         mCharacterController.Move(mMove * (movementSpeed * Time.deltaTime));
         
-        if (mInputs.Gameplay.fire.IsPressed()) Shoot();
+        if (mInputs.Gameplay.fire.IsPressed() && !mIsDelaying && !mReloading && mCurrentAmmo > 0) Shoot();
     }
 
     private void Momentum(Vector2 inputs) {
@@ -146,8 +146,6 @@ public class PlayerController : MonoBehaviour {
     }
 
     private void Shoot() {
-        if (mReloading || mIsDelaying || mCurrentAmmo <= 0) return;
-
         mCurrentAmmo  -= 1;
         ammoText.text =  mCurrentAmmo.ToString();
         mIsDelaying   =  true;

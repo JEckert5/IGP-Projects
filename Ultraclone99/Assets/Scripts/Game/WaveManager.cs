@@ -6,7 +6,7 @@ public class WaveManager : MonoBehaviour {
 
     [SerializeField] private Wave[] waves;
     private Wave mCurrentWave;
-    private int mWaveCounter = 0;
+    private int mWaveCounter; 
     
     
     // Start is called before the first frame update
@@ -17,12 +17,9 @@ public class WaveManager : MonoBehaviour {
         mCurrentWave.Begin(this);
     }
 
-    // Update is called once per frame
-    void Update() {
-        
-    }
-
     public void Signal(Wave wave) {
+        if (mWaveCounter >= waves.Length) return;
+        
         mCurrentWave =  waves[mWaveCounter];
         
         mWaveCounter += 1;

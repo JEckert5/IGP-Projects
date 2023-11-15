@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.ProBuilder.MeshOperations;
-using UnityEngine.Serialization;
+
 
 public class Laser : MonoBehaviour {
 
@@ -25,15 +21,17 @@ public class Laser : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
-        if ((mTarget - mHead).sqrMagnitude <= 0.05f * 0.05f) { // It's about right
+        if ((mTarget - transform.position).sqrMagnitude <= 0.05f * 0.05f) { // It's about right
             DestroyImmediate(gameObject);
             return;
-        } 
-        
-        mHead = Vector3.SmoothDamp(mHead, mTarget, ref mTiterator, mSmoothTime);
-        mTail = Vector3.SmoothDamp(mTail, mTarget, ref mTiterator2, mSmoothTime);
-        
-        mLineRenderer.SetPositions(new[] {mTail, mHead});
+        }
+
+        transform.position = Vector3.MoveTowards(transform.position, mTarget, mSmoothTime / Time.deltaTime);
+        Debug.Log(transform.position);
+        var normal = transform.forward;
+        mHead += normal * 1.2f;
+        mTail += normal * 0.8f;
+        mLineRenderer.SetPositions(new []{mTail, mHead});
     }
 
     public void SetTarget(Vector3 target, Vector3 origin) {
