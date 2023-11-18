@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - WaveSpawnPoints
   - Interactable
+  - BulletParent
   layers:
   - Default
   - TransparentFX

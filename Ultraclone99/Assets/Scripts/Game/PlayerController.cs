@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] private Transform cameraPosition;
     [SerializeField] private float sensitivity;
     [SerializeField] private float gravity;
-
+    private Transform mBulletParent;
     #endregion
 
     #region Gun
@@ -63,6 +63,7 @@ public class PlayerController : MonoBehaviour {
         ammoText.text        = mCurrentAmmo.ToString();
         reserveText.text     = mReserveAmmo.ToString();
         Debug.Log(mInputs.Gameplay.fire.interactions);
+        mBulletParent = GameObject.FindGameObjectWithTag("BulletParent").transform;
 
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -153,7 +154,7 @@ public class PlayerController : MonoBehaviour {
 
         // Use camera for hit reg, then shoot from shootpoint.
         var position = shootPoint.position;
-        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, shootPoint);
+        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, mBulletParent);
         var lc       = laser.GetComponent<Laser>();
 
         if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit) && hit.distance <= 200f)
@@ -207,7 +208,7 @@ public class PlayerController : MonoBehaviour {
 
         StartCoroutine(ReloadTimer());
     }
-
+    // CoRoutines
     private IEnumerator ReloadTimer() {
         yield return new WaitForSeconds(reloadTime);
 
