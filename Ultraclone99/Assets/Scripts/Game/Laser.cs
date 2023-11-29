@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Laser : MonoBehaviour {
@@ -6,11 +7,11 @@ public class Laser : MonoBehaviour {
     private Vector3 mHead;
     private Vector3 mTarget;
     private Vector3 mOrigin;
-    private float mSmoothTime;
-    private float mMagnitude;
     private Material mMat;
 
-    private static readonly int OriginPosition = Shader.PropertyToID("_OriginPosition");
+    public Rigidbody rb;
+
+    private readonly static int OriginPosition = Shader.PropertyToID("_OriginPosition");
 
     private void Awake() {
         mMat = GetComponentInChildren<Renderer>().material;
@@ -18,22 +19,31 @@ public class Laser : MonoBehaviour {
 
     // Update is called once per frame
     private void Update() {
-        if ((mTarget - transform.position).sqrMagnitude <= 0.05f * 0.05f) { // It's about right
-            DestroyImmediate(gameObject);
-            return;
-        }
-
-        transform.position = Vector3.MoveTowards(transform.position, mTarget, 1 * Time.deltaTime);
+        // Debug.Log(rb.transform.position);
+        
+        var t = Vector3.MoveTowards(transform.position, mTarget, 50 * Time.deltaTime);
+        
+        rb.MovePosition(t * 2);
     }
 
     public void SetTarget(Vector3 target, Vector3 origin) {
         mOrigin     = origin;
         mTarget     = target;
-        mMagnitude  = (mTarget - mOrigin).magnitude;
-        mSmoothTime = mMagnitude / 200; 
         mMat.SetVector(OriginPosition, mOrigin);
         transform.LookAt(mTarget);
         
-        Destroy(gameObject, mSmoothTime);
+        Destroy(gameObject, 1.5f);
+    }
+
+    private void OnCollisionEnter(Collision other) {
+        Debug.Log("Help");
+    }
+
+    private void OnCollisionStay(Collision other) {
+        Debug.Log("Stay");
+    }
+
+    private void OnCollisionExit(Collision other) {
+        Debug.Log("Leave");
     }
 }

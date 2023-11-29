@@ -157,18 +157,8 @@ public class PlayerController : MonoBehaviour {
         var laser    = Instantiate(laserPrefab, position, Quaternion.identity, mBulletParent);
         var lc       = laser.GetComponent<Laser>();
 
-        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit) && hit.distance <= 200f)
-            lc.SetTarget(hit.point, position);
-        else {
-            lc.SetTarget(shootPoint.forward * 200f + position, position);
-
-            return;
-        }
-
-        if (!hit.collider.CompareTag("Enemy")) return;
-
-        var enemy = hit.collider.gameObject.GetComponent<GunkyLadController>();
-        enemy.DoDamage(15);
+        lc.SetTarget(shootPoint.forward * 200f + position, position);
+        // Laser does hit reg
     }
 
     private void Interact() {

@@ -14,6 +14,7 @@ public class GunkyLadController: MonoBehaviour {
     private Wave mWave;
     private Rigidbody mRigidbody;
     private bool mDead;
+    private Vector3 mDeathVec; // Direction he flies when dead 
     
     [SerializeField] private Transform healthTextTransform;
     [SerializeField] private int health;
@@ -21,8 +22,9 @@ public class GunkyLadController: MonoBehaviour {
     
     // Start is called before the first frame update
     private void Start() {
-        mAgent     = GetComponent<NavMeshAgent>();
-        mRigidbody = GetComponent<Rigidbody>();
+        mAgent                      = GetComponent<NavMeshAgent>();
+        mRigidbody                  = GetComponent<Rigidbody>();
+        mRigidbody.detectCollisions = true;
         var t = GameObject.FindGameObjectWithTag("Player");
 
         if (t == null) return;
@@ -41,10 +43,6 @@ public class GunkyLadController: MonoBehaviour {
         healthTextTransform.forward = -healthTextTransform.forward; // Invert
     }
 
-    private void FixedUpdate() {
-        
-    }
-
     public void DoDamage(int dmg) {
         health -= dmg;
 
@@ -53,7 +51,7 @@ public class GunkyLadController: MonoBehaviour {
             mDead                  = true;
             mAgent.enabled         = false;
             mRigidbody.isKinematic = false;
-            mRigidbody.AddForce(-transform.forward * 5f, ForceMode.Impulse);
+            mRigidbody.AddForce(mDeathVec * 5f, ForceMode.Impulse);
             healthText.enabled = false;
             // Particle effect stuff
             return;
@@ -64,5 +62,9 @@ public class GunkyLadController: MonoBehaviour {
     
     public void SetWave(Wave wave) {
         mWave = wave;
+    }
+
+    public void SetDeathVector(Vector3 vec) {
+        mDeathVec = vec;
     }
 }
