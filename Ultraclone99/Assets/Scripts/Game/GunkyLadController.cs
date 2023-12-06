@@ -51,6 +51,7 @@ public class GunkyLadController: MonoBehaviour {
             mDead                  = true;
             mAgent.enabled         = false;
             mRigidbody.isKinematic = false;
+            mRigidbody.useGravity  = true;
             mRigidbody.AddForce(mDeathVec * 5f, ForceMode.Impulse);
             healthText.enabled = false;
             // Particle effect stuff

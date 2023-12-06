@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Net.NetworkInformation;
 using TMPro;
 using UnityEngine;
 
@@ -24,6 +25,7 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] private int maxReserve;
     [SerializeField] private GameObject laserPrefab;
     [SerializeField] private Transform shootPoint;
+    [SerializeField] private float maxLaserDistance;
     private int mCurrentAmmo;
     private int mReserveAmmo;
     private bool mReloading;
@@ -151,19 +153,26 @@ public class PlayerController : MonoBehaviour {
         ammoText.text =  mCurrentAmmo.ToString();
         mIsDelaying   =  true;
         StartCoroutine(ShootDelay());
-
+        
         // Use camera for hit reg, then shoot from shootpoint.
         var position = shootPoint.position;
-        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, mBulletParent);
+        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, mBulletParent); 
         var lc       = laser.GetComponent<Laser>();
 
-        lc.SetTarget(shootPoint.forward * 200f + position, position);
-        // Laser does hit reg
+        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit, maxLaserDistance) && hit.collider.gameObject.CompareTag("Enemy")) {
+            lc.SetTarget(hit.point, position);
+
+            var gunk = hit.collider.gameObject.GetComponent<GunkyLadController>();
+
+            gunk.DoDamage(15);
+            gunk.SetDeathVector(shootPoint.forward);
+        }
+        else {
+            lc.SetTarget(position + shootPoint.forward * maxLaserDistance, position);
+        }
     }
 
     private void Interact() {
-        // Debug.Log("interact: " + mInteractable);
-
         if (mInteractable == null) return;
 
         mInteractable.Action();

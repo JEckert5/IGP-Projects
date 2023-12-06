@@ -250,6 +250,7 @@ GameObject:
   - component: {fileID: -7936207359868498778}
   - component: {fileID: 7198520582913931999}
   - component: {fileID: 3480387896631021042}
+  - component: {fileID: 9006169281177160779}
   m_Layer: 0
   m_Name: GunkerLad
   m_TagString: Enemy
@@ -388,6 +389,29 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!136 &9006169281177160779
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4547859503545905350}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4595911088765890643
 GameObject:
   m_ObjectHideFlags: 0
