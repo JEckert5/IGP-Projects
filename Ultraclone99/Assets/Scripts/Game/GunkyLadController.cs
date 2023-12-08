@@ -19,6 +19,7 @@ public class GunkyLadController: MonoBehaviour {
     [SerializeField] private Transform healthTextTransform;
     [SerializeField] private int health;
     [SerializeField] private TextMeshProUGUI healthText;
+    [SerializeField] private float shootTimer;
     
     // Start is called before the first frame update
     private void Start() {
@@ -67,5 +68,9 @@ public class GunkyLadController: MonoBehaviour {
 
     public void SetDeathVector(Vector3 vec) {
         mDeathVec = vec;
+    }
+
+    private IEnumerator ShootTimer() {
+        yield return new WaitForSeconds(shootTimer);
     }
 }

@@ -49,3 +49,6 @@ Session.vim
 
 # Visual Studio
 .vs
+
+Unreal Core Snake Game/Content/StarterContent/*
+
