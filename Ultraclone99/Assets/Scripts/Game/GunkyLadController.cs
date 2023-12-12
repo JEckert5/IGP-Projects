@@ -6,6 +6,7 @@ using UnityEngine.AI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
+using Random = System.Random;
 
 public class GunkyLadController: MonoBehaviour {
 
@@ -14,12 +15,16 @@ public class GunkyLadController: MonoBehaviour {
     private Wave mWave;
     private Rigidbody mRigidbody;
     private bool mDead;
+    private bool mCanShoot = true;
     private Vector3 mDeathVec; // Direction he flies when dead 
+    private Transform mBulletParent;
     
     [SerializeField] private Transform healthTextTransform;
     [SerializeField] private int health;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private float shootTimer;
+    [SerializeField] private GameObject laserPrefab;
+    [SerializeField] private Transform shootPoint;
     
     // Start is called before the first frame update
     private void Start() {
@@ -31,6 +36,7 @@ public class GunkyLadController: MonoBehaviour {
         if (t == null) return;
 
         mDestination = t.transform;
+        mBulletParent = GameObject.FindGameObjectWithTag("BulletParent").transform;
     }
 
     // Update is called once per frame
@@ -42,6 +48,8 @@ public class GunkyLadController: MonoBehaviour {
         
         healthTextTransform.LookAt(mDestination);
         healthTextTransform.forward = -healthTextTransform.forward; // Invert
+
+        if (mCanShoot) Shoot();
     }
 
     public void DoDamage(int dmg) {
@@ -70,7 +78,31 @@ public class GunkyLadController: MonoBehaviour {
         mDeathVec = vec;
     }
 
+    private void Shoot() {
+        mCanShoot = false;
+        StartCoroutine(ShootTimer());
+
+        var position = shootPoint.position;
+        var laser = Instantiate(laserPrefab, position, Quaternion.identity);
+        var lc = laser.GetComponent<Laser>();
+
+        if (Physics.Raycast(shootPoint.position, shootPoint.forward, out var hit) &&
+            hit.collider.gameObject.CompareTag("Player")) {
+            lc.SetTarget(hit.point, position);
+
+            var player = hit.collider.gameObject.GetComponent<PlayerController>();
+
+            player.DoDamage(5);
+        }
+        else {
+            lc.SetTarget(position + shootPoint.forward * 200f, position);
+        }
+    }
+
     private IEnumerator ShootTimer() {
-        yield return new WaitForSeconds(shootTimer);
+        var random = new Random();
+        yield return new WaitForSeconds(shootTimer + (float)random.NextDouble());
+
+        mCanShoot = true;
     }
 }

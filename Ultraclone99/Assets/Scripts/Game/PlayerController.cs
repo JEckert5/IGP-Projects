@@ -190,6 +190,11 @@ public class PlayerController : MonoBehaviour {
     public void DoDamage(float dmg) {
         health -= dmg;
 
+        if (health <= 0) {
+            // GAME OVER
+        }
+            
+
         healthText.text = "Health: " + health;
     }
 
