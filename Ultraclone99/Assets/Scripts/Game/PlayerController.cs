@@ -52,6 +52,7 @@ public class PlayerController : MonoBehaviour {
     #endregion
 
     private Interactable mInteractable;
+    private GameOverScreen gos;
 
     private void Start() {
         mMove                = Vector3.zero;
@@ -64,8 +65,8 @@ public class PlayerController : MonoBehaviour {
         healthText.text      = "Health: " + health;
         ammoText.text        = mCurrentAmmo.ToString();
         reserveText.text     = mReserveAmmo.ToString();
-        Debug.Log(mInputs.Gameplay.fire.interactions);
         mBulletParent = GameObject.FindGameObjectWithTag("BulletParent").transform;
+        gos           = GameObject.FindGameObjectWithTag("GOS").GetComponent<GameOverScreen>();
 
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -191,7 +192,7 @@ public class PlayerController : MonoBehaviour {
         health -= dmg;
 
         if (health <= 0) {
-            // GAME OVER
+            gos.GameOver();
         }
             
 

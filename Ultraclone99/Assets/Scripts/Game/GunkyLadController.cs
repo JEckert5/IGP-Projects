@@ -25,6 +25,7 @@ public class GunkyLadController: MonoBehaviour {
     [SerializeField] private float shootTimer;
     [SerializeField] private GameObject laserPrefab;
     [SerializeField] private Transform shootPoint;
+    [SerializeField] private Transform hitRegPoint;
     
     // Start is called before the first frame update
     private void Start() {
@@ -86,7 +87,7 @@ public class GunkyLadController: MonoBehaviour {
         var laser = Instantiate(laserPrefab, position, Quaternion.identity);
         var lc = laser.GetComponent<Laser>();
 
-        if (Physics.Raycast(shootPoint.position, shootPoint.forward, out var hit) &&
+        if (Physics.Raycast(hitRegPoint.position, hitRegPoint.forward, out var hit) &&
             hit.collider.gameObject.CompareTag("Player")) {
             lc.SetTarget(hit.point, position);
 
