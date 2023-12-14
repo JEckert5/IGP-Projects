@@ -1,21 +1,20 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Video;
 
-public class GameOverScreen : MonoBehaviour {
+public class HUDManager : MonoBehaviour {
     [SerializeField] private Canvas hud;
     [SerializeField] private Canvas gameOver;
     [SerializeField] private VideoPlayer videoPlayer;
     [SerializeField] private RawImage mgsVid;
-    [SerializeField] private RawImage mgs;
     [SerializeField] private TextMeshProUGUI objective;
     [SerializeField] private Image objectivePanel;
+    private AudioSource mCar;
 
     private void Start() {
         gameOver.enabled = false;
@@ -33,7 +32,11 @@ public class GameOverScreen : MonoBehaviour {
     public void NewRound(int wave) {
         objective.enabled = true;
         objectivePanel.enabled = true;
-        objective.text = "Round " + wave.ToString();
+
+        if (wave == 2) {
+            objective.text = "SPECIAL ROUND! KILL THE GERMAN!";
+        } else
+            objective.text = "Round " + wave;
 
         StartCoroutine(NewFade());
     }
@@ -52,13 +55,21 @@ public class GameOverScreen : MonoBehaviour {
 
     public void Quit() {
         Time.timeScale = 1;
+        AudioManager.instance.Stop("BG");
         SceneManager.LoadScene("MainMenu");
     }
 
     public void GameOver() {
         Time.timeScale   = 0;
         AudioManager.instance.Stop("BG");
-        AudioManager.instance.Play("DeathSound");
+
+        var l = FindFirstObjectByType<VolksBoss>();
+        
+        if (l != null)
+            l.Stop();
+        
+        if (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer)
+            AudioManager.instance.Play("DeathSound");
         hud.enabled      = false;
         gameOver.enabled = true;
         videoPlayer.Play();

@@ -65,19 +65,13 @@ MonoBehaviour:
     source: {fileID: 0}
   - name: SingleFire
     clip: {fileID: 8300000, guid: eec4b180066db4272979a6c687194b7a, type: 3}
-    volume: 1
-    pitch: 1
-    loop: 0
-    source: {fileID: 0}
-  - name: BurstFire
-    clip: {fileID: 8300000, guid: 3af93006e0b8d4eba8d04df874d2abbe, type: 3}
-    volume: 1
+    volume: 0.593
     pitch: 1
     loop: 0
     source: {fileID: 0}
   - name: BG
     clip: {fileID: 8300000, guid: c107f84458ee44952a56a51f899c7374, type: 3}
-    volume: 0.44061533
+    volume: 0.304
     pitch: 1
     loop: 1
     source: {fileID: 0}

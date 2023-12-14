@@ -3,6 +3,7 @@ using System.Collections;
 using System.Net.NetworkInformation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class PlayerController : MonoBehaviour {
 
@@ -12,7 +13,8 @@ public class PlayerController : MonoBehaviour {
     [SerializeField] private Transform cameraPosition;
     [SerializeField] private float sensitivity;
     [SerializeField] private float gravity;
-    private Transform mBulletParent;
+    [SerializeField] private Transform bulletParent;
+    [SerializeField] private HUDManager gos;
     #endregion
 
     #region Gun
@@ -52,7 +54,6 @@ public class PlayerController : MonoBehaviour {
     #endregion
 
     private Interactable mInteractable;
-    private GameOverScreen gos;
 
     private void Start() {
         mMove                = Vector3.zero;
@@ -65,8 +66,6 @@ public class PlayerController : MonoBehaviour {
         healthText.text      = "Health: " + health;
         ammoText.text        = mCurrentAmmo.ToString();
         reserveText.text     = mReserveAmmo.ToString();
-        mBulletParent = GameObject.FindGameObjectWithTag("BulletParent").transform;
-        gos           = GameObject.FindGameObjectWithTag("GOS").GetComponent<GameOverScreen>();
 
         Cursor.visible   = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -158,13 +157,16 @@ public class PlayerController : MonoBehaviour {
         
         // Use camera for hit reg, then shoot from shootpoint.
         var position = shootPoint.position;
-        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, mBulletParent); 
+        var laser    = Instantiate(laserPrefab, position, Quaternion.identity, bulletParent); 
         var lc       = laser.GetComponent<Laser>();
 
-        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit, maxLaserDistance) && hit.collider.gameObject.CompareTag("Enemy")) {
+        if (Physics.Raycast(cameraPosition.position, cameraPosition.forward, out var hit, maxLaserDistance)) {
             lc.SetTarget(hit.point, position);
 
-            var gunk = hit.collider.gameObject.GetComponent<GunkyLadController>();
+            if (!hit.collider.gameObject.CompareTag("Enemy"))
+                return;
+            
+            var gunk = hit.collider.gameObject.GetComponent<EnemyBase>();
 
             gunk.DoDamage(15);
             gunk.SetDeathVector(shootPoint.forward);
@@ -195,8 +197,7 @@ public class PlayerController : MonoBehaviour {
         if (health <= 0) {
             gos.GameOver();
         }
-            
-
+        
         healthText.text = "Health: " + health;
     }
 
@@ -227,6 +228,11 @@ public class PlayerController : MonoBehaviour {
         yield return new WaitForSeconds(0.099f);
 
         mIsDelaying = false;
+    }
+
+    public void AddAmmo(int ammo) {
+        mReserveAmmo     += ammo;
+        reserveText.text =  mReserveAmmo.ToString();
     }
 
 }
