@@ -1,11 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using TMPro;
-using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 using Random = System.Random;
 
 public class GunkyLadController: MonoBehaviour {
@@ -26,6 +22,7 @@ public class GunkyLadController: MonoBehaviour {
     [SerializeField] private GameObject laserPrefab;
     [SerializeField] private Transform shootPoint;
     [SerializeField] private Transform hitRegPoint;
+    [SerializeField] private AudioSource gunSource;
     
     // Start is called before the first frame update
     private void Start() {
@@ -54,6 +51,8 @@ public class GunkyLadController: MonoBehaviour {
     }
 
     public void DoDamage(int dmg) {
+        if (mDead) return;
+        
         health -= dmg;
 
         if (health <= 0) {
@@ -81,6 +80,7 @@ public class GunkyLadController: MonoBehaviour {
 
     private void Shoot() {
         mCanShoot = false;
+        gunSource.Play();
         StartCoroutine(ShootTimer());
 
         var position = shootPoint.position;

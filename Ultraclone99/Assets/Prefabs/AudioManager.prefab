@@ -45,9 +45,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sounds:
-  - name: BG
+  - name: MenuMusic
     clip: {fileID: 8300000, guid: 8e60dd0b85bd4dc4ea98d266b20e356b, type: 3}
     volume: 1
+    pitch: 1
+    loop: 1
+    source: {fileID: 0}
+  - name: LoadingMusic
+    clip: {fileID: 8300000, guid: 3b512072c11d9456fa08bba15e876d7f, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 1
+    source: {fileID: 0}
+  - name: DeathSound
+    clip: {fileID: 8300000, guid: e577345985292473ebef2b050e1c194e, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: SingleFire
+    clip: {fileID: 8300000, guid: eec4b180066db4272979a6c687194b7a, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: BurstFire
+    clip: {fileID: 8300000, guid: 3af93006e0b8d4eba8d04df874d2abbe, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: BG
+    clip: {fileID: 8300000, guid: c107f84458ee44952a56a51f899c7374, type: 3}
+    volume: 0.44061533
     pitch: 1
     loop: 1
     source: {fileID: 0}

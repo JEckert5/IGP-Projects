@@ -7,12 +7,14 @@ public class LoadManager : MonoBehaviour
 {
     // Start is called before the first frame update
     private void Start() {
+        AudioManager.instance.Play("LoadingMusic");
         StartCoroutine(Load());
     }
 
     private static IEnumerator Load() {
-        yield return new WaitForSecondsRealtime(3.5f);
+        yield return new WaitForSecondsRealtime(6f);
 
+        AudioManager.instance.Stop("LoadingMusic");
         SceneManager.LoadScene("MainLevel");
     }
 }

@@ -150,6 +150,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     private void Shoot() {
+        AudioManager.instance.Play("SingleFire");
         mCurrentAmmo  -= 1;
         ammoText.text =  mCurrentAmmo.ToString();
         mIsDelaying   =  true;

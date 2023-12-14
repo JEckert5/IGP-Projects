@@ -1,29 +1,41 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public class WaveManager : MonoBehaviour {
 
     [SerializeField] private Wave[] waves;
+    [SerializeField] private Wave specialWave;
+    [SerializeField] private Canvas victoryCanvas;
+    [SerializeField] private Canvas game
     private Wave mCurrentWave;
-    private int mWaveCounter; 
+    private int mRoundCounter = 1;
+    private Random mRandom;
     
-    
-    // Start is called before the first frame update
-    void Start() {
-        mCurrentWave = waves[mWaveCounter];
-
-        mWaveCounter += 1;
+    private void Start() {
+        mRandom = new Random();
+        mCurrentWave = waves[mRandom.Next(waves.Length)];
+        AudioManager.instance.Play("BG");
+        victoryCanvas.enabled = false;
+        
         mCurrentWave.Begin(this);
     }
 
     public void Signal(Wave wave) {
-        if (mWaveCounter >= waves.Length) return;
+        if (wave == specialWave) {
+            // Game Win!
+            Time.timeScale = 0f;
+            victoryCanvas.enabled = true;
+        }
         
-        mCurrentWave =  waves[mWaveCounter];
-        
-        mWaveCounter += 1;
+        mRoundCounter += 1;
+
+        mCurrentWave = mRoundCounter == 7 ? specialWave : waves[mRandom.Next(waves.Length)];
         
         mCurrentWave.Begin(this);
+
+        mGOS.NewRound(mRoundCounter);
     }
 }

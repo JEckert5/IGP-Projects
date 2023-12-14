@@ -15,3 +15,4 @@ MonoBehaviour:
   prefab: {fileID: 4547859503545905350, guid: b97a8e3690c1751468e223dc438e4bc0, type: 3}
   spawnTag: WaveSpawnPoints
   size: 10
+  name: Wave2

@@ -8,6 +8,8 @@ public class Wave: ScriptableObject {
     [SerializeField] private GameObject prefab;
     [SerializeField] private string spawnTag;
     [SerializeField] private int size;
+    [SerializeField] private string name;
+    
     private List<Transform> mSpawnPoints;
     private List<GunkyLadController> mDudes;
     private WaveManager mParent;
@@ -34,13 +36,9 @@ public class Wave: ScriptableObject {
 
     public void Signal(GunkyLadController lad) {
         mDudes.Remove(lad);
-        Destroy(lad.gameObject, 20f);
+        Destroy(lad.gameObject, 15f);
 
         if (mDudes.Count == 0)
             mParent.Signal(this);
-    }
-
-    public bool Over() {
-        return mDudes.Count == 0;
     }
 }
