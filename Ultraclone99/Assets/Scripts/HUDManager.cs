@@ -33,7 +33,7 @@ public class HUDManager : MonoBehaviour {
         objective.enabled = true;
         objectivePanel.enabled = true;
 
-        if (wave == 2) {
+        if (wave == 5) {
             objective.text = "SPECIAL ROUND! KILL THE GERMAN!";
         } else
             objective.text = "Round " + wave;

@@ -35,7 +35,7 @@ public class WaveManager : MonoBehaviour {
         
         mRoundCounter += 1;
 
-        mCurrentWave = mRoundCounter == 2 ? specialWave : waves[mRandom.Next(waves.Length)];
+        mCurrentWave = mRoundCounter == 5 ? specialWave : waves[mRandom.Next(waves.Length)];
         
         mCurrentWave.Begin(this);
 
