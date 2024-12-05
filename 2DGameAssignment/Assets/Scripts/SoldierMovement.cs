@@ -49,7 +49,7 @@ public class SoldierMovement : MonoBehaviour {
 
         mPos = new Vector3(move.x * moveSpeed * Time.deltaTime, move.y * moveSpeed * Time.deltaTime, 0);
 
-        mSoldier.velocity = mPos;
+        mSoldier.linearVelocity = mPos;
         
         mAnim.SetFloat("Up", move.y);
         mAnim.SetFloat("Right", move.x);
